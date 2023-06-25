@@ -5,8 +5,8 @@ import Html.Events exposing (..)
 
 exercisesView : Html msg
 exercisesView  =
-    div [ id "my-custom-css" ]  [
-    div [ class "container" ]
+    div [ id "my-custom-css"]  [
+    div [ class "container" , Html.Attributes.classList [ ( "animate__animated animate__fadeIn", True ) ]]
         [ section [ class "section", style "background-image" "url(Muskelgruppe_Brust.jpg)" ]
             [ div [ class "content" ]
                 [ p [class "has-text-white is-size-4 has-text-weight-bold"] [ text "Chest" ] ]

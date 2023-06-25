@@ -4,194 +4,117 @@ module Planning exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Json.Decode
+import Json.Decode.Pipeline
+import Json.Encode
+import Firebase exposing (..)
 
 
 -- MODEL
 
-type alias Exercise =
-    { name : String
-    , sets : String
-    , reps : String
-    }
-
-type alias WorkoutPlan =
-    { id : Int
-    , title : String
-    , weekday : String
-    , exercises : List Exercise
-    }
 
 type alias Model =
-    { nextId : Int
-    , saved : List WorkoutPlan
-    , modal : Maybe ModalMsg
-    }
-
-type ModalMsg
-    = InputWorkoutPlan WorkoutPlan
-
-type Msg
-    = SaveWorkoutPlan WorkoutPlan
-    | DeleteWorkoutPlan Int
-    | OpenModal ModalMsg
-    | CloseModal
-    | UpdateModal ModalMsg
-    | UpdateWorkoutPlan Int WorkoutPlan
-    | UpdateExercise Int Int Exercise
-    | SaveModal
-    | AddExercise 
+    { inputContent : String
+    , inputDate : String
+    , inputTime : String
+    , firebase : Firebase.Model }
 
 init : Model
 init =
-    { nextId = 0
-    , saved = []
-    , modal = Nothing
+    { inputContent = ""
+    , inputDate = ""
+    , inputTime = ""
+    , firebase = Firebase.init 
     }
+
+type Msg
+    = InputChanged String
+    | DateChanged String
+    | TimeChanged String
+    | SaveMessage
+    | FirebaseMsg Firebase.Msg
+
 
 -- UPDATE
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
     case msg of
-        SaveWorkoutPlan workoutPlan ->
-            ( { model | saved = workoutPlan :: model.saved }, Cmd.none )
 
-        DeleteWorkoutPlan id ->
-            ( { model | saved = List.filter (\plan -> plan.id /= id) model.saved }, Cmd.none )
+        InputChanged value ->
+            ( { model | inputContent = value }, Cmd.none )
 
-        OpenModal modalMsg ->
-            ( { model | modal = Just modalMsg }, Cmd.none )
+        DateChanged value ->
+            ( { model | inputDate = value }, Cmd.none )
 
-        CloseModal ->
-            ( { model | modal = Nothing }, Cmd.none )
+        TimeChanged value ->
+            ( { model | inputTime = value }, Cmd.none )
 
-        UpdateModal modalMsg ->
-            ( { model | modal = Just modalMsg }, Cmd.none )
+        SaveMessage ->
+            ( model, Firebase.saveMessage <| messageEncoder model )
 
-        UpdateWorkoutPlan id updatedPlan ->
+        FirebaseMsg subMsg ->
             let
-                updatedSaved = List.indexedMap (\idx plan -> if idx == id then { plan | title = updatedPlan.title, weekday = updatedPlan.weekday } else plan) model.saved
+                (updatedFirebase, cmd) = Firebase.update subMsg model.firebase
             in
-            ( { model | saved = updatedSaved }, Cmd.none )
-
-        UpdateExercise id exerciseId updatedExercise ->
-            let
-                updatedSaved = List.indexedMap (\idx plan -> if idx == id then { plan | exercises = List.indexedMap (\idx2 ex -> if idx2 == exerciseId then updatedExercise else ex) plan.exercises } else plan) model.saved
-            in
-            ( { model | saved = updatedSaved }, Cmd.none )
+            ( { model | firebase = updatedFirebase }, Cmd.map FirebaseMsg cmd )
         
-        SaveModal ->
-            case model.modal of
-                Nothing ->
-                    ( model, Cmd.none )
-                    
-                Just (InputWorkoutPlan plan) ->
-                    ( { model | saved = plan :: model.saved, modal = Nothing }, Cmd.none )
 
-        AddExercise ->
-            case model.modal of
-                Just (InputWorkoutPlan workoutPlan) ->
-                    let
-                        updatedWorkoutPlan = { workoutPlan | exercises = workoutPlan.exercises ++ [ { name = "", sets = "", reps = "" } ] }
-                    in
-                    ( { model | modal = Just (InputWorkoutPlan updatedWorkoutPlan) }, Cmd.none )
 
-                _ ->
-                    ( model, Cmd.none )
+messageEncoder : Model -> Json.Encode.Value
+messageEncoder model =
+    Json.Encode.object
+        [ ( "content", Json.Encode.string model.inputContent )
+        , ( "date", Json.Encode.string model.inputDate )
+        , ( "time", Json.Encode.string model.inputTime )
+        , ( "uid"
+          , case model.firebase.userData of
+                Just userData ->
+                    Json.Encode.string userData.uid
+
+                Maybe.Nothing ->
+                    Json.Encode.null
+          )
+        ]
+
 
 -- VIEW
 
 
+firebae : Model -> Html Msg
+firebae model = 
+    div [] [
+        case model.firebase.userData of
+                    Just data ->
+                        div []
+                            [ input [ placeholder "Message to save", value model.inputContent, onInput InputChanged ] []
+                            , input [ placeholder "Date", value model.inputDate, onInput DateChanged ] []
+                            , input [ placeholder "Time", value model.inputTime, onInput TimeChanged ] []
+                            , button [ onClick SaveMessage ] [ text "Save new message" ]
+                            , div [ style "display" "flex", style "justify-content" "center"]
+                                    [ h3 []
+                                        [ text "Previous messages"
+                                        , table [ class "table is-striped" ]
+                                            [ thead []
+                                                [ tr []
+                                                    [ th [] [ text "Content" ]
+                                                    , th [] [ text "Date" ]
+                                                    , th [] [ text "Time" ]
+                                                    ]
+                                                ]
+                                            , tbody []
+                                                <| List.map
+                                                    (\m -> tr [] [ td [] [ text m.content ], td [] [ text m.date ], td [] [ text m.time ] ])
+                                                    model.firebase.messages
+                                            ]
+                                        ]
+                                    ]
+                                , h2 [] [ text <| errorPrinter model.firebase.error ]
+                            ]
 
+                    Maybe.Nothing ->
+                        div [] []
 
+    ]
 
-planningView : Model -> Html Msg
-planningView model =
-    div [] 
-        [ buttonBar
-        , mainView model
-        ]
-
-buttonBar: Html Msg
-buttonBar = 
-    div [] [ button [ class "button is-white is-fullwidth", onClick (OpenModal (InputWorkoutPlan { id = 0, title = "", weekday = "", exercises = [] }))  ] [ text "Trainingsplan hinzufügen" ]]
-
-
-
-mainView : Model -> Html Msg
-mainView model =
-    div []
-        [ div [] (List.indexedMap planView model.saved)
-        , case model.modal of
-            Nothing ->
-                text ""
-
-            Just modalMsg ->
-                modalView modalMsg
-        ]
-
-planView : Int -> WorkoutPlan -> Html Msg
-planView id plan =
-    div []
-        [ div [] [ text plan.title ]
-        , button [ class "button is-danger", onClick (OpenModal (InputWorkoutPlan plan)) ] [ text "Edit" ]
-        , button [ class "button is-danger", onClick (DeleteWorkoutPlan id) ] [ text "Delete" ]
-        , div [] (List.indexedMap exerciseView plan.exercises)
-        ]
-
-exerciseView : Int -> Exercise -> Html Msg
-exerciseView id exercise =
-    div []
-        [ div [] [ text exercise.name ]
-        ]
-
-modalView : ModalMsg -> Html Msg
-modalView modalMsg =
-    case modalMsg of
-        InputWorkoutPlan plan ->
-            inputWorkoutPlanModal plan
-
-inputWorkoutPlanModal : WorkoutPlan -> Html Msg
-inputWorkoutPlanModal plan =
-    div [ class "modal is-active"]
-        [ div [ class "modal-background" ] []
-        , div [ class "modal-content" ]
-            [ div [ class "container", style "background-color" "white", style "display" "flex", style "flex-direction" "column", style "align-items" "center", style "justify-content" "center", style "gap" "10px", style "padding" "20px" ]
-                [ p [class "is-size-4", style "color" "#333"] [text "Name"] 
-                , input [ class "input is-rounded", type_ "text", value plan.title, onInput (\newTitle -> UpdateModal (InputWorkoutPlan { plan | title = newTitle })), style "border-radius" "25px", style "border" "2px solid #ccc", style "padding" "10px" ] []
-                , p [class "is-size-4", style "color" "#333"] [text "Wochentag"] 
-                , input [ class "input is-rounded ", type_ "text", value plan.weekday, onInput (\newWeekday -> UpdateModal (InputWorkoutPlan { plan | weekday = newWeekday })), style "border-radius" "25px", style "border" "2px solid #ccc", style "padding" "10px" ] []
-                , div [] (List.indexedMap (\idx exercise -> inputExerciseInModal idx plan exercise) plan.exercises)
-                , div [ style "display" "flex", style "justify-content" "center", style "align-items" "center", style "gap" "10px" ]
-                    [ button [ class "button is-danger", onClick AddExercise, style "border-radius" "25px" ] [ text "Übung hinzufügen" ] 
-                    , button [ class "button is-success", onClick SaveModal, style "border-radius" "25px" ] [ text "Speichern" ]
-                    , button [ class "button", onClick CloseModal, style "border-radius" "25px" ] [ text "Schließen" ]
-                    ]
-                ]
-            ]  
-        ]
-
-
-
-inputExerciseInModal : Int -> WorkoutPlan -> Exercise -> Html Msg
-inputExerciseInModal idx plan exercise =
-    div [ style "display" "flex", style "flex-direction" "row", style "gap" "10px"]
-        [ div [ class "field" ]
-            [ label [ class "label" ] [ text "Übung" ]
-            , div [ class "control" ]
-                [ input [ class "input", type_ "text", value exercise.name, onInput (\newName -> UpdateModal (InputWorkoutPlan { plan | exercises = List.indexedMap (\i ex -> if i == idx then { ex | name = newName } else ex) plan.exercises })) ] []
-                ]
-            ]
-        , div [ class "field" ]
-            [ label [ class "label" ] [ text "Sets" ]
-            , div [ class "control" ]
-                [ input [ class "input", type_ "text", value exercise.sets, onInput (\newSets -> UpdateModal (InputWorkoutPlan { plan | exercises = List.indexedMap (\i ex -> if i == idx then { ex | sets = newSets } else ex) plan.exercises })) ] []
-                ]
-            ]
-        , div [ class "field" ]
-            [ label [ class "label" ] [ text "Wiederholungen" ]
-            , div [ class "control" ]
-                [ input [ class "input", type_ "text", value exercise.reps, onInput (\newReps -> UpdateModal (InputWorkoutPlan { plan | exercises = List.indexedMap (\i ex -> if i == idx then { ex | reps = newReps } else ex) plan.exercises })) ] []
-                ]
-            ]
-        ]
+    
