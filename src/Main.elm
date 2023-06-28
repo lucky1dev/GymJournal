@@ -60,10 +60,11 @@ update msg model =
                 (updatedFirebase, cmd) = Firebase.update subMsg model.firebase
             in
             ( { model | firebase = updatedFirebase
-                     , planning = { inputContent = ""
-                                                , inputDate = ""
-                                                , inputTime = ""
-                                                , firebase = updatedFirebase }
+                     , planning = { firebase = updatedFirebase 
+                                    ,saved = model.planning.saved
+                                    ,modal = model.planning.modal
+                                    ,selectedPlanId = model.planning.selectedPlanId
+                                    ,dropdownOpen = model.planning.dropdownOpen }
                }
             , Cmd.map FirebaseMsg cmd )
 
@@ -97,7 +98,7 @@ viewBody model =
     div [] [ navBar model,
                   case model.url.fragment of 
                         Just "exercises" -> Exercises.exercisesView
-                        Just "trainings" -> div [] [Html.map PlanningMsg (Planning.firebae model.planning)]
+                        Just "trainings" -> div [] [Html.map PlanningMsg (Planning.planningView model.planning)]
                         Just "logs" -> Logging.loggingView
                         Just "progression" -> Progression.progressionView
                         _ -> startView model

@@ -21,7 +21,7 @@ port signInError : (Json.Encode.Value -> msg) -> Sub msg
 port signOut : () -> Cmd msg
 
 
-port saveMessage : Json.Encode.Value -> Cmd msg
+port saveWorkoutPlan : Json.Encode.Value -> Cmd msg
 
 
 port receiveMessages : (Json.Encode.Value -> msg) -> Sub msg
