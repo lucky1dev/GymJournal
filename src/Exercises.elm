@@ -3,6 +3,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 
+{-
 exercisesView : Html msg
 exercisesView  =
     div [ id "my-custom-css"]  [
@@ -34,3 +35,10 @@ exercisesView  =
             ]
         ]
     ]
+
+-}
+
+
+exercisesView : Html msg
+exercisesView =  
+    div [] []

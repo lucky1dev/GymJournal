@@ -10,7 +10,6 @@ import Json.Encode
 import Planning
 import Start
 import Exercises
-import Logging
 import Progression
 import Url
 import Browser.Navigation as Nav
@@ -60,8 +59,7 @@ update msg model =
             in
             ( { model | firebase = updatedFirebase
                      , planning = { firebase = updatedFirebase 
-                                    , trainings = model.planning.trainings
-                                    --,saved = model.planning.saved
+                                    ,trainings = model.planning.trainings
                                     ,modal = model.planning.modal
                                     ,selectedPlanId = model.planning.selectedPlanId
                                     ,dropdownOpen = model.planning.dropdownOpen 
@@ -100,7 +98,6 @@ viewBody model =
                   case model.url.fragment of 
                         Just "exercises" -> Exercises.exercisesView
                         Just "trainings" -> div [] [Html.map PlanningMsg (Planning.planningView model.planning)]
-                        Just "logs" -> Logging.loggingView
                         Just "progression" -> Progression.progressionView
                         _ -> startView model
             ]
@@ -134,25 +131,24 @@ navBar model =
             text ""
 
         Just data ->
-            nav [ class "navbar is-white", style "role" "navigation", style "ariaLabel" "main navigation", Html.Attributes.classList [ ( "animate__animated animate__fadeIn", True ) ], style "animation-delay" "3s", style "z-index" "2"]
-                [ div [ class "navbar-brand" ]
-                    [ a [ class "navbar-item", href "" ]
-                        [ div [ id "navbar" ]
-                            [ h1 [ class "title" ]
-                                [ text "GymJournal" ]
-                            ]
-                        ]
-                    , a [ style "role" "button", class "navbar-burger", style "ariaLabel" "menu", style "ariaExpanded" "false", attribute "data-target" "navbarBasicExample" ]
-                        [ span [ style "ariaHidden" "true" ] []
-                        , span [ style "ariaHidden" "true" ] []
-                        , span [ style "ariaHidden" "true" ] []
-                        ]
-                    ]
-                , div [ class "navbar-menu" ]
+            nav [ class "navbar is-white", Html.Attributes.classList [ ( "animate__animated animate__fadeIn", True ) ], style "animation-delay" "3s", style "z-index" "2"]
+                [ --div [ class "navbar-brand" ]
+                   -- [ a [ class "navbar-item", href "" ]
+                   --     [ div [ id "navbar" ]
+                   --         [ h1 [ class "title" ]
+                   --             [ text "GymJournal" ]
+                  --          ]
+                  --      ]
+                  --  , a [ style "role" "button", class "navbar-burger", style "ariaLabel" "menu", style "ariaExpanded" "false", attribute "data-target" "navbarBasicExample" ]
+                  --      [ span [ style "ariaHidden" "true" ] []
+                  --      , span [ style "ariaHidden" "true" ] []
+                  --      , span [ style "ariaHidden" "true" ] []
+                  --      ]
+                  --  ],
+                 div [ class "navbar-menu" ]
                     [ div [ class "navbar-start" ]
                         [ a [ class "navbar-item has-text-black is-size-4 has-text-weight-bold", href "#exercises" ] [ text "Exercises" ]
                         , a [ class "navbar-item has-text-black is-size-4 has-text-weight-bold", href "#trainings" ] [ text "Trainings" ]
-                        , a [ class "navbar-item has-text-black is-size-4 has-text-weight-bold", href "#logs" ] [ text "Logs" ]
                         , a [ class "navbar-item has-text-black is-size-4 has-text-weight-bold", href "#progression" ] [ text "Progressions" ]
                         ]
                     , div [ class "navbar-end" ]
@@ -175,7 +171,6 @@ subscriptions model =
     Sub.batch
         [ Firebase.signInInfo (Json.Decode.decodeValue Firebase.userDataDecoder) |> Sub.map (FirebaseMsg << Firebase.LoggedInData)
         , Firebase.signInError (Json.Decode.decodeValue Firebase.logInErrorDecoder) |> Sub.map (FirebaseMsg << Firebase.LoggedInError)
-        --, Firebase.receiveMessages (Json.Decode.decodeValue Planning.messageListDecoder) |> Sub.map (PlanningMsg << Planning.MessagesReceived)
         , Firebase.receiveWorkoutPlans (Json.Decode.decodeValue Planning.workoutListDecoder) |> Sub.map (PlanningMsg << Planning.WorkoutPlansReceived)
         ]
 

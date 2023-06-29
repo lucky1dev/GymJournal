@@ -63,7 +63,6 @@ type Msg
     | AddExercise 
     | SelectWorkoutPlan Int
     | ToggleDropdown
-    --| MessagesReceived (Result Json.Decode.Error (List MessageContent))
     | WorkoutPlansReceived (Result Json.Decode.Error (List WorkoutPlan))
 
 
@@ -141,17 +140,6 @@ update msg model =
             
             ({ model | selectedPlanId = Just id, dropdownOpen = False }, Cmd.none)
 
-{-
-        MessagesReceived result ->
-            case result of
-                Ok value ->
-                    ( { model | messages = value }, Cmd.none )
-
-                Err error ->    
-                    ( { model | messages = [] }, Cmd.none )
-
-                   -- ( { model | firebase =  error = messageToError <| Json.Decode.errorToString error }, Cmd.none )       
--}
         WorkoutPlansReceived result ->
              case result of
                 Ok value ->
@@ -223,48 +211,6 @@ encodeExercise exercise =
 
 -- VIEW
 
-{-
-firebae : Model -> Html Msg
-firebae model = 
-    div [] [
-        case model.firebase.userData of
-                    Just data ->
-                        div []
-                            [ input [ placeholder "Message to save", value model.inputContent, onInput InputChanged ] []
-                            , input [ placeholder "Date", value model.inputDate, onInput DateChanged ] []
-                            , input [ placeholder "Time", value model.inputTime, onInput TimeChanged ] []
-                            , button [ onClick SaveMessage ] [ text "Save new message" ]
-                            , div [ style "display" "flex", style "justify-content" "center"]
-                                    [ h3 []
-                                        [ text "Previous messages"
-                                        , table [ class "table is-striped" ]
-                                            [ thead []
-                                                [ tr []
-                                                    [ th [] [ text "Content" ]
-                                                    , th [] [ text "Date" ]
-                                                    , th [] [ text "Time" ]
-                                                    ]
-                                                ]
-                                            , tbody []
-                                                <| List.map
-                                                    (\m -> tr [] [ td [] [ text m.content ], td [] [ text m.date ], td [] [ text m.time ] ])
-                                                    model.firebase.messages
-                                            ]
-                                        ]
-                                    ]
-                                , h2 [] [ text <| errorPrinter model.firebase.error ]
-                            ]
-
-                    Maybe.Nothing ->
-                        div [] []
-
-    ]
-
-
-
--}
-
-
 planningView : Model -> Html Msg
 planningView model =
     div [Html.Attributes.classList [ ( "animate__animated animate__fadeIn", True ) ], style "display" "flex", style "align-items" "center", style "justify-content" "center", style "gap" "20px"] 
@@ -314,7 +260,7 @@ createDropDownMenu model =
                     Just id ->
                         case List.filter (\plan -> plan.id == id) model.trainings of
                             [selectedPlan] ->
-                                selectedPlan.title
+                                (selectedPlan.title ++ " : " ++ selectedPlan.weekday)
 
                             _ ->
                                 "Trainingsplan auswählen"
@@ -338,7 +284,7 @@ createDropDownMenu model =
                     ]
                 ]
             , div [ class "dropdown-menu", id "dropdown-menu3", Html.Attributes.attribute "role" "menu" ]
-                [ div [ class "dropdown-content" ] (List.concatMap (\plan -> [button [class "button is-white dropdown-item", onClick (SelectWorkoutPlan plan.id)] [text plan.title]]) model.trainings) ]
+                [ div [ class "dropdown-content" ] (List.concatMap (\plan -> [button [class "button is-white dropdown-item", onClick (SelectWorkoutPlan plan.id)] [text (plan.title ++ " : " ++ plan.weekday)]]) model.trainings) ]
             ]
         ]
 
@@ -354,13 +300,15 @@ mainView model =
             text ""
 
         plan :: _ ->
+            div [] [
             div [ class "table-container" ]
                 [ table [ class "table is-hoverable" ]
                     [ thead []
                         [ tr []
                             [ th [] [ text "Exercise" ]
                             , th [] [ text "Sets" ]
-                            , th [] [ text "Reps" ]
+                            , th [] [ text "Reps" ] 
+                            , th [] [ text "Gewicht" ]  -- if exercise = equipped
                             ]
                         ]
                     , tbody []
@@ -369,9 +317,12 @@ mainView model =
                             [ td [] [ text exercise.name ]
                             , td [] [ text exercise.sets ]
                             , td [] [ text exercise.reps ]
+                            , td [] [ text "Bsp. 50kg" ]
+                            , button [class "button is-info"] [text "Gewicht aktualisieren"]  -- if exercise = equipped else Reps aktualisieren
                             ]) plan.exercises)
                     ]
                 ]
+             , div [] [button [class "button is-danger"][text "Trainingsplan löschen"]]]
 
 
 modalView : ModalMsg -> Html Msg

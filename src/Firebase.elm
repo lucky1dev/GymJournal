@@ -24,8 +24,6 @@ port signOut : () -> Cmd msg
 port saveWorkoutPlan : Json.Encode.Value -> Cmd msg
 
 
---port receiveMessages : (Json.Encode.Value -> msg) -> Sub msg
-
 port receiveWorkoutPlans : (Json.Encode.Value -> msg) -> Sub msg
 
 
