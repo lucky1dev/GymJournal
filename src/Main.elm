@@ -21,7 +21,6 @@ type alias Model =
     , url : Url.Url
     , firebase : Firebase.Model
     , planning : Planning.Model
-    -- Add other module models here
     }
 
 
@@ -61,10 +60,12 @@ update msg model =
             in
             ( { model | firebase = updatedFirebase
                      , planning = { firebase = updatedFirebase 
-                                    ,saved = model.planning.saved
+                                    , trainings = model.planning.trainings
+                                    --,saved = model.planning.saved
                                     ,modal = model.planning.modal
                                     ,selectedPlanId = model.planning.selectedPlanId
-                                    ,dropdownOpen = model.planning.dropdownOpen }
+                                    ,dropdownOpen = model.planning.dropdownOpen 
+                                    ,messages = model.planning.messages}
                }
             , Cmd.map FirebaseMsg cmd )
 
@@ -174,7 +175,8 @@ subscriptions model =
     Sub.batch
         [ Firebase.signInInfo (Json.Decode.decodeValue Firebase.userDataDecoder) |> Sub.map (FirebaseMsg << Firebase.LoggedInData)
         , Firebase.signInError (Json.Decode.decodeValue Firebase.logInErrorDecoder) |> Sub.map (FirebaseMsg << Firebase.LoggedInError)
-        , Firebase.receiveMessages (Json.Decode.decodeValue Firebase.messageListDecoder) |> Sub.map (FirebaseMsg << Firebase.MessagesReceived)
+        --, Firebase.receiveMessages (Json.Decode.decodeValue Planning.messageListDecoder) |> Sub.map (PlanningMsg << Planning.MessagesReceived)
+        , Firebase.receiveWorkoutPlans (Json.Decode.decodeValue Planning.workoutListDecoder) |> Sub.map (PlanningMsg << Planning.WorkoutPlansReceived)
         ]
 
 

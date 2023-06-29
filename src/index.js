@@ -76,21 +76,35 @@ onAuthStateChanged(auth, user => {
         console.log(error);
       });
 
-      const q = query(collection(db, `users/${user.uid}/messages`));
+      const q = query(collection(db, `users/${user.uid}/workoutplans`));
       onSnapshot(q, querySnapshot => {
         console.log("Received new snapshot");
-        const messages = [];
+        const workoutPlans = [];
   
-        
-      querySnapshot.forEach(doc => {
-        messages.push({ content: doc.data().content, date: doc.data().date, time: doc.data().time });
-      });
+        querySnapshot.forEach(doc => {
+          const data = doc.data();
+          const exercises = data.exercises.map(exercise => {
+            return {
+              name: exercise.name,
+              sets: exercise.sets,
+              reps: exercise.reps
+            };
+          });
   
-      app.ports.receiveMessages.send(messages);
+          workoutPlans.push({
+            uid : data.uid,
+            id: data.id,
+            title: data.title,
+            weekday: data.weekday,
+            exercises: exercises
+          });
+        });
+  
+        app.ports.receiveWorkoutPlans.send(workoutPlans);
+        console.log("Sent workout plans:", workoutPlans);
       });
     }
   });
-
 
 app.ports.saveWorkoutPlan.subscribe(data => {
   console.log(`Saving workout plan to database: ${data.title}`);
@@ -104,6 +118,7 @@ app.ports.saveWorkoutPlan.subscribe(data => {
   });
 
   addDoc(collection(db, `users/${data.uid}/workoutplans`), {
+    uid : data.uid,
     id: data.id,
     title: data.title,
     weekday: data.weekday,

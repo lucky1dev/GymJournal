@@ -24,11 +24,12 @@ port signOut : () -> Cmd msg
 port saveWorkoutPlan : Json.Encode.Value -> Cmd msg
 
 
-port receiveMessages : (Json.Encode.Value -> msg) -> Sub msg
+--port receiveMessages : (Json.Encode.Value -> msg) -> Sub msg
+
+port receiveWorkoutPlans : (Json.Encode.Value -> msg) -> Sub msg
 
 
-type alias MessageContent =
-    { content : String, time : String, date : String}
+
 
 type alias ErrorData =
     { code : Maybe String, message : Maybe String, credential : Maybe String }
@@ -40,14 +41,12 @@ type alias UserData =
 
 type alias Model = 
     { userData : Maybe UserData
-    , error : ErrorData
-    , messages : List MessageContent}
+    , error : ErrorData}
 
 init : Model
 init =
     { userData = Maybe.Nothing
     , error = emptyError
-    , messages = []
     }
 
 
@@ -56,7 +55,6 @@ type Msg
     | LogOut
     | LoggedInData (Result Json.Decode.Error UserData)
     | LoggedInError (Result Json.Decode.Error ErrorData)
-    | MessagesReceived (Result Json.Decode.Error (List MessageContent))
 
 emptyError : ErrorData
 emptyError =
@@ -90,13 +88,7 @@ update msg model =
                     ( { model | error = messageToError <| Json.Decode.errorToString error }, Cmd.none )
 
 
-        MessagesReceived result ->
-            case result of
-                Ok value ->
-                    ( { model | messages = value }, Cmd.none )
 
-                Err error ->
-                    ( { model | error = messageToError <| Json.Decode.errorToString error }, Cmd.none )
 
 
 
@@ -127,18 +119,6 @@ logInErrorDecoder =
         |> Json.Decode.Pipeline.required "message" (Json.Decode.nullable Json.Decode.string)
         |> Json.Decode.Pipeline.required "credential" (Json.Decode.nullable Json.Decode.string)
 
-
-messageDecoder : Json.Decode.Decoder MessageContent
-messageDecoder =
-    Json.Decode.succeed MessageContent
-        |> Json.Decode.Pipeline.required "content" Json.Decode.string
-        |> Json.Decode.Pipeline.required "date" Json.Decode.string
-        |> Json.Decode.Pipeline.required "time" Json.Decode.string
-
-
-messageListDecoder : Json.Decode.Decoder (List MessageContent)
-messageListDecoder =
-    Json.Decode.list messageDecoder
 
 
 

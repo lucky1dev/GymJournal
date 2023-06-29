@@ -10,12 +10,16 @@ import Json.Encode
 import Firebase exposing (..)
 
 
+
 -- MODEL
 type alias Exercise =
     { name : String
     , sets : String
     , reps : String
     }
+
+type alias MessageContent =
+    { content : String, time : String, date : String}
 
 type alias WorkoutPlan =
     { userid : String
@@ -30,34 +34,37 @@ type ModalMsg
 
 type alias Model =
     {  firebase : Firebase.Model 
-    
-    , saved : List WorkoutPlan
+    , trainings : List WorkoutPlan
     , modal : Maybe ModalMsg
     , selectedPlanId : Maybe Int
-    , dropdownOpen : Bool}
+    , dropdownOpen : Bool
+    , messages : List MessageContent}
 
 init : Model
 init =
     {  firebase = Firebase.init 
-    , saved = []
+    , trainings = []
     , modal = Nothing
     , selectedPlanId = Nothing
     , dropdownOpen = False
+    , messages = []
     }
 
 type Msg
 
     = FirebaseMsg Firebase.Msg
-    | DeleteWorkoutPlan Int
+  --  | DeleteWorkoutPlan Int
     | OpenModal ModalMsg
     | CloseModal
     | UpdateModal ModalMsg
-    | UpdateWorkoutPlan Int WorkoutPlan
-    | UpdateExercise Int Int Exercise
+ --   | UpdateWorkoutPlan Int WorkoutPlan
+ --   | UpdateExercise Int Int Exercise
     | SaveModal
     | AddExercise 
     | SelectWorkoutPlan Int
     | ToggleDropdown
+    --| MessagesReceived (Result Json.Decode.Error (List MessageContent))
+    | WorkoutPlansReceived (Result Json.Decode.Error (List WorkoutPlan))
 
 
 -- UPDATE
@@ -73,8 +80,8 @@ update msg model =
             ( { model | firebase = updatedFirebase }, Cmd.map FirebaseMsg cmd )
         
 
-        DeleteWorkoutPlan id ->
-            ( { model | saved = List.filter (\plan -> plan.id /= id) model.saved }, Cmd.none )
+ --       DeleteWorkoutPlan id ->
+ --           ( { model | saved = List.filter (\plan -> plan.id /= id) model.saved }, Cmd.none )
 
         OpenModal modalMsg ->
             ( { model | modal = Just modalMsg }, Cmd.none )
@@ -85,7 +92,7 @@ update msg model =
         UpdateModal modalMsg ->
             ( { model | modal = Just modalMsg }, Cmd.none )
 
-        UpdateWorkoutPlan id updatedPlan ->
+ {-       UpdateWorkoutPlan id updatedPlan ->
             let
                 updatedSaved = List.indexedMap (\idx plan -> if idx == id then { plan | title = updatedPlan.title, weekday = updatedPlan.weekday } else plan) model.saved
             in
@@ -96,7 +103,7 @@ update msg model =
                 updatedSaved = List.indexedMap (\idx plan -> if idx == id then { plan | exercises = List.indexedMap (\idx2 ex -> if idx2 == exerciseId then updatedExercise else ex) plan.exercises } else plan) model.saved
             in
             ( { model | saved = updatedSaved }, Cmd.none )
-        
+-}
         SaveModal ->
             case model.modal of
                 Nothing ->
@@ -104,19 +111,17 @@ update msg model =
                     
                 Just (InputWorkoutPlan plan) ->
                     let
-                        uniqueId =
-                            case   List.maximum (List.map .id model.saved) of
+                        uniqueId = 
+                            case   List.maximum (List.map .id model.trainings) of
                                 Just maxId ->
                                     maxId + 1
                                 Nothing ->
                                     1
-                        
-                        
-    
-                    
-                    
+                                         
                     in
-                    ( { model | saved = { plan | id = uniqueId } :: model.saved, modal = Nothing }, Firebase.saveWorkoutPlan <| messageEncoderWorkoutplan { plan | id = uniqueId } )
+                    (  model -- modal = nothing
+                    --( { model | saved = { plan | id = uniqueId } :: model.saved, modal = Nothing }, Firebase.saveWorkoutPlan <| messageEncoderWorkoutplan { plan | id = uniqueId } )
+                        , Firebase.saveWorkoutPlan <| messageEncoderWorkoutplan { plan | id = uniqueId } )
 
         AddExercise ->
             case model.modal of
@@ -128,7 +133,7 @@ update msg model =
 
                 _ ->
                     ( model, Cmd.none )
-
+    
         ToggleDropdown ->
             ( { model | dropdownOpen = not model.dropdownOpen }, Cmd.none )
 
@@ -136,6 +141,61 @@ update msg model =
             
             ({ model | selectedPlanId = Just id, dropdownOpen = False }, Cmd.none)
 
+{-
+        MessagesReceived result ->
+            case result of
+                Ok value ->
+                    ( { model | messages = value }, Cmd.none )
+
+                Err error ->    
+                    ( { model | messages = [] }, Cmd.none )
+
+                   -- ( { model | firebase =  error = messageToError <| Json.Decode.errorToString error }, Cmd.none )       
+-}
+        WorkoutPlansReceived result ->
+             case result of
+                Ok value ->
+                    ( { model | trainings = value }, Cmd.none )
+
+                Err error ->    
+                    ( { model | trainings = [] }, Cmd.none )
+
+
+messageDecoder : Json.Decode.Decoder MessageContent
+messageDecoder =
+    Json.Decode.succeed MessageContent
+        |> Json.Decode.Pipeline.required "content" Json.Decode.string
+        |> Json.Decode.Pipeline.required "date" Json.Decode.string
+        |> Json.Decode.Pipeline.required "time" Json.Decode.string
+
+
+messageListDecoder : Json.Decode.Decoder (List MessageContent)
+messageListDecoder =
+    Json.Decode.list messageDecoder
+
+workoutListDecoder : Json.Decode.Decoder (List WorkoutPlan)
+workoutListDecoder =
+    Json.Decode.list workoutDecoder
+
+workoutDecoder : Json.Decode.Decoder WorkoutPlan
+workoutDecoder =
+    Json.Decode.succeed WorkoutPlan
+        |> Json.Decode.Pipeline.required "uid" Json.Decode.string
+        |> Json.Decode.Pipeline.required "id" Json.Decode.int
+        |> Json.Decode.Pipeline.required "title" Json.Decode.string
+        |> Json.Decode.Pipeline.required "weekday" Json.Decode.string
+        |> Json.Decode.Pipeline.required "exercises" exerciseListDecoder
+
+exerciseListDecoder : Json.Decode.Decoder (List Exercise) 
+exerciseListDecoder =
+    Json.Decode.list exerciseDecoder
+
+exerciseDecoder : Json.Decode.Decoder Exercise
+exerciseDecoder =
+    Json.Decode.succeed Exercise
+        |> Json.Decode.Pipeline.required "name" Json.Decode.string
+        |> Json.Decode.Pipeline.required "sets" Json.Decode.string
+        |> Json.Decode.Pipeline.required "reps" Json.Decode.string
 
 
 messageEncoderWorkoutplan: WorkoutPlan -> Json.Encode.Value
@@ -234,10 +294,10 @@ buttonBar model =
             [ span [] [ text "Add Workoutplan" ]
             
             ]
-        , case model.saved of
-            [] ->
+        , case model.trainings of
+             [] ->
                 text ""
-            _ ->
+             _ ->
                 createDropDownMenu model
         ]
 
@@ -252,7 +312,7 @@ createDropDownMenu model =
             else
                 case model.selectedPlanId of
                     Just id ->
-                        case List.filter (\plan -> plan.id == id) model.saved of
+                        case List.filter (\plan -> plan.id == id) model.trainings of
                             [selectedPlan] ->
                                 selectedPlan.title
 
@@ -278,15 +338,16 @@ createDropDownMenu model =
                     ]
                 ]
             , div [ class "dropdown-menu", id "dropdown-menu3", Html.Attributes.attribute "role" "menu" ]
-                [ div [ class "dropdown-content" ] (List.concatMap (\plan -> [button [class "button is-white dropdown-item", onClick (SelectWorkoutPlan plan.id)] [text plan.title]]) model.saved) ]
+                [ div [ class "dropdown-content" ] (List.concatMap (\plan -> [button [class "button is-white dropdown-item", onClick (SelectWorkoutPlan plan.id)] [text plan.title]]) model.trainings) ]
             ]
         ]
+
 
 
 mainView : Model -> Html Msg
 mainView model =
     let
-        selectedPlan = List.filter (\plan -> Just plan.id == model.selectedPlanId) model.saved
+        selectedPlan = List.filter (\plan -> Just plan.id == model.selectedPlanId) model.trainings
     in
     case selectedPlan of
         [] ->
