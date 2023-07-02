@@ -20,16 +20,20 @@ type alias Model =
     , url : Url.Url
     , firebase : Firebase.Model
     , planning : Planning.Model
+    , exercises : Exercises.Model
     }
 
 
 init : () -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
 init flags url key =
+    let
+        (exercisesModel, exercisesCmd) = Exercises.init
+    in
   ({  key = key
     , url = url
     , planning = Planning.init
-    , firebase = Firebase.init}, Cmd.none )
-
+    , firebase = Firebase.init
+    , exercises = exercisesModel}, Cmd.map ExercisesMsg exercisesCmd)
 
 ---- UPDATE ----
 
@@ -37,6 +41,7 @@ init flags url key =
 type Msg
     = PlanningMsg Planning.Msg
     | FirebaseMsg Firebase.Msg
+    | ExercisesMsg Exercises.Msg
     | UrlChanged Url.Url
     | LinkClicked Browser.UrlRequest
 
@@ -46,6 +51,12 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+
+        ExercisesMsg subMsg ->
+            let
+                (updatedExercises, cmd) = Exercises.update subMsg model.exercises
+            in
+            ( { model | exercises = updatedExercises }, Cmd.map ExercisesMsg cmd )
 
         PlanningMsg subMsg ->
             let
@@ -96,7 +107,7 @@ viewBody : Model -> Html Msg
 viewBody model =
     div [] [ navBar model,
                   case model.url.fragment of 
-                        Just "exercises" -> Exercises.exercisesView
+                        Just "exercises" -> div [] [Html.map ExercisesMsg (Exercises.exercisesView model.exercises)]
                         Just "trainings" -> div [] [Html.map PlanningMsg (Planning.planningView model.planning)]
                         Just "progression" -> Progression.progressionView
                         _ -> startView model
@@ -131,20 +142,8 @@ navBar model =
             text ""
 
         Just data ->
-            nav [ class "navbar is-white", Html.Attributes.classList [ ( "animate__animated animate__fadeIn", True ) ], style "animation-delay" "3s", style "z-index" "2"]
-                [ --div [ class "navbar-brand" ]
-                   -- [ a [ class "navbar-item", href "" ]
-                   --     [ div [ id "navbar" ]
-                   --         [ h1 [ class "title" ]
-                   --             [ text "GymJournal" ]
-                  --          ]
-                  --      ]
-                  --  , a [ style "role" "button", class "navbar-burger", style "ariaLabel" "menu", style "ariaExpanded" "false", attribute "data-target" "navbarBasicExample" ]
-                  --      [ span [ style "ariaHidden" "true" ] []
-                  --      , span [ style "ariaHidden" "true" ] []
-                  --      , span [ style "ariaHidden" "true" ] []
-                  --      ]
-                  --  ],
+            nav [ class "navbar is-white is-desktop", Html.Attributes.classList [ ( "animate__animated animate__fadeIn", True ) ], style "animation-delay" "3s", style "z-index" "2"]
+                [ 
                  div [ class "navbar-menu" ]
                     [ div [ class "navbar-start" ]
                         [ a [ class "navbar-item has-text-black is-size-4 has-text-weight-bold", href "#exercises" ] [ text "Exercises" ]
