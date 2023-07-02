@@ -105,13 +105,16 @@ view model =
 
 viewBody : Model -> Html Msg
 viewBody model =
-    div [] [ navBar model,
-                  case model.url.fragment of 
-                        Just "exercises" -> div [] [Html.map ExercisesMsg (Exercises.exercisesView model.exercises)]
-                        Just "trainings" -> div [] [Html.map PlanningMsg (Planning.planningView model.planning)]
-                        Just "progression" -> Progression.progressionView
-                        _ -> startView model
-            ]
+
+                  div [] [ navBar model,
+                        case model.url.fragment of 
+                                Just "exercises" -> div [] [Html.map ExercisesMsg (Exercises.exercisesView model.exercises)]
+                                Just "trainings" -> div [] [Html.map PlanningMsg (Planning.planningView model.planning)]
+                                Just "progression" -> text ""-- Progression.progressionView 
+                                _ -> startView model
+                    ]
+
+
 
 startView: Model -> Html Msg
 startView model =
