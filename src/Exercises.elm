@@ -54,7 +54,7 @@ trainingDecoder =
 getTrainings : Cmd Msg
 getTrainings =
     Http.get
-        { url = "./exercises.json"
+        { url = "https://raw.githubusercontent.com/lucky1dev/GymJournal/main/public/exercises.JSON"
         , expect = Http.expectJson GotTrainings (Decode.field "Trainingsübungen" (Decode.list trainingDecoder))
         }
 
