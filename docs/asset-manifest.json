@@ -1,0 +1,13 @@
+{
+  "main.css": "/GymJournal/static/css/main.82d1b0ab.chunk.css",
+  "main.js": "/GymJournal/static/js/main.73ca2f3e.chunk.js",
+  "main.js.map": "/GymJournal/static/js/main.73ca2f3e.chunk.js.map",
+  "runtime~main.js": "/GymJournal/static/js/runtime~main.9e0612c0.js",
+  "runtime~main.js.map": "/GymJournal/static/js/runtime~main.9e0612c0.js.map",
+  "vendors~main.js": "/GymJournal/static/js/vendors~main.a0649824.chunk.js",
+  "vendors~main.js.map": "/GymJournal/static/js/vendors~main.a0649824.chunk.js.map",
+  "./service-worker.js": "/GymJournal/./service-worker.js",
+  "exercises.JSON": "/GymJournal/exercises.JSON",
+  "index.html": "/GymJournal/index.html",
+  "precache-manifest.608d857da4d766437cb43033e0adeddd.js": "/GymJournal/precache-manifest.608d857da4d766437cb43033e0adeddd.js"
+}

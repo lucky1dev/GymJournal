@@ -8,7 +8,6 @@ import Json.Decode
 import Json.Decode.Pipeline
 import Json.Encode
 import Planning
-import Start
 import Exercises
 import Progression
 import Url
@@ -21,6 +20,7 @@ type alias Model =
     , firebase : Firebase.Model
     , planning : Planning.Model
     , exercises : Exercises.Model
+    , progression : Progression.Model
     }
 
 
@@ -33,13 +33,15 @@ init flags url key =
     , url = url
     , planning = Planning.init
     , firebase = Firebase.init
-    , exercises = exercisesModel}, Cmd.map ExercisesMsg exercisesCmd)
+    , exercises = exercisesModel
+    , progression = Progression.init}, Cmd.map ExercisesMsg exercisesCmd)
 
 ---- UPDATE ----
 
 
 type Msg
     = PlanningMsg Planning.Msg
+    | ProgressionMsg Progression.Msg
     | FirebaseMsg Firebase.Msg
     | ExercisesMsg Exercises.Msg
     | UrlChanged Url.Url
@@ -51,6 +53,13 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        
+        ProgressionMsg subMsg ->
+            let
+                (updatedProgression, cmd) = Progression.update subMsg model.progression
+            in
+            ( { model | progression = updatedProgression }, Cmd.map ProgressionMsg cmd )
+    
 
         ExercisesMsg subMsg ->
             let
@@ -110,7 +119,7 @@ viewBody model =
                         case model.url.fragment of 
                                 Just "exercises" -> div [] [Html.map ExercisesMsg (Exercises.exercisesView model.exercises)]
                                 Just "trainings" -> div [] [Html.map PlanningMsg (Planning.planningView model.planning)]
-                                Just "progression" -> text ""-- Progression.progressionView 
+                                Just "progression" ->  div [] [Html.map ProgressionMsg (Progression.view model.progression)]
                                 _ -> startView model
                     ]
 
