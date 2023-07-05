@@ -27,16 +27,20 @@ type alias Model =
 init : () -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
 init flags url key =
     let
-        (exercisesModel, exercisesCmd) = Exercises.init
+        ( exercisesModel, exercisesCmd ) = Exercises.init
+        ( planningModel, planningCmd ) = Planning.init
     in
-  ({  key = key
-    , url = url
-    , planning = Planning.init
-    , firebase = Firebase.init
-    , exercises = exercisesModel
-    , progression = Progression.init}, Cmd.map ExercisesMsg exercisesCmd)
-
----- UPDATE ----
+    ( { key = key
+      , url = url
+      , planning = planningModel
+      , firebase = Firebase.init
+      , exercises = exercisesModel
+      , progression = Progression.init
+      }
+    , Cmd.batch [ Cmd.map ExercisesMsg exercisesCmd
+                , Cmd.map PlanningMsg planningCmd
+                ]
+    )
 
 
 type Msg
@@ -46,9 +50,6 @@ type Msg
     | ExercisesMsg Exercises.Msg
     | UrlChanged Url.Url
     | LinkClicked Browser.UrlRequest
-
-
-
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -79,6 +80,7 @@ update msg model =
             in
             ( { model | firebase = updatedFirebase
                      , planning = { firebase = updatedFirebase 
+                                    ,exercises = model.planning.exercises
                                     ,trainings = model.planning.trainings
                                     ,modal = model.planning.modal
                                     ,selectedPlanId = model.planning.selectedPlanId
@@ -103,7 +105,6 @@ update msg model =
                     , Cmd.none
                     )
        
----- VIEW ----
 view : Model -> Browser.Document Msg
 view model =
     { title = "GymJournal"
@@ -122,7 +123,6 @@ viewBody model =
                                 Just "progression" ->  div [] [Html.map ProgressionMsg (Progression.view model.progression)]
                                 _ -> startView model
                     ]
-
 
 
 startView: Model -> Html Msg
@@ -171,10 +171,6 @@ navBar model =
                         ]
                     ]
                 ]
-
-
-        
----- PROGRAM ----
 
 
 subscriptions : Model -> Sub Msg

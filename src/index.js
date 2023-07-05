@@ -4,7 +4,7 @@ import * as serviceWorker from './serviceWorker';
 
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInWithPopup, signOut, GoogleAuthProvider, onAuthStateChanged } from "firebase/auth";
-import { query, getFirestore, collection, addDoc, onSnapshot } from "firebase/firestore"; 
+import { query, getFirestore, collection, addDoc, onSnapshot, doc, setDoc } from "firebase/firestore"; 
 
 const firebaseConfig = {
   apiKey: "AIzaSyABWGM8j-KM1_cikpSY8wRN32MYAvEYSuQ",
@@ -87,7 +87,12 @@ onAuthStateChanged(auth, user => {
             return {
               name: exercise.name,
               sets: exercise.sets,
-              reps: exercise.reps
+              reps: exercise.reps,
+              belastung: exercise.belastung,
+              start_reps: exercise.start_reps,
+              start_weight: exercise.start_weight,
+              reps_now: exercise.reps_now,
+              weight_now: exercise.weight_now
             };
           });
   
@@ -106,6 +111,7 @@ onAuthStateChanged(auth, user => {
     }
   });
 
+
 app.ports.saveWorkoutPlan.subscribe(data => {
   console.log(`Saving workout plan to database: ${data.title}`);
 
@@ -113,11 +119,16 @@ app.ports.saveWorkoutPlan.subscribe(data => {
     return {
       name: exercise.name,
       sets: exercise.sets,
-      reps: exercise.reps
+      reps: exercise.reps,
+      belastung: exercise.belastung,
+      start_reps: exercise.start_reps,
+      start_weight: exercise.start_weight,
+      reps_now: exercise.reps_now,
+      weight_now: exercise.weight_now
     };
   });
-
-  addDoc(collection(db, `users/${data.uid}/workoutplans`), {
+  
+  setDoc(doc(db, `users/${data.uid}/workoutplans`, String(data.id)), {
     uid : data.uid,
     id: data.id,
     title: data.title,

@@ -6,13 +6,10 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 
-
--- Typendefinitionen
-
 type alias Training =
     { name : String
     , hauptmuskelgruppe : String
-    , equipment : String
+    , belastung : String
     , erklaerung : String
     , youtubeLink : String
     }
@@ -25,31 +22,26 @@ type HttpState
 type alias Model =
     { trainings : List Training
     , state : HttpState
-    , equipmentFilter : String
+    , belastungFilter : String
     , hauptmuskelgruppeFilter : String
     , selectedTraining : Maybe Training
     }
 
--- Anfangszustand
 
 init : ( Model, Cmd Msg )
 init =
     ( Model [] Loading "" "" Nothing, getTrainings )
 
 
--- JSON Decoder
-
 trainingDecoder : Decode.Decoder Training
 trainingDecoder =
     Decode.map5 Training
         (Decode.field "Übungsname" Decode.string)
         (Decode.field "Hauptmuskelgruppe" Decode.string)
-        (Decode.field "Equipment" Decode.string)
+        (Decode.field "Belastung" Decode.string)
         (Decode.field "Erklärung" Decode.string)
         (Decode.field "YoutubeLink" Decode.string)
 
-
--- HTTP Anfrage
 
 getTrainings : Cmd Msg
 getTrainings =
@@ -59,11 +51,9 @@ getTrainings =
         }
 
 
--- Update Funktion
-
 type Msg
     = GotTrainings (Result Http.Error (List Training))
-    | UpdateEquipmentFilter String
+    | UpdateBelastungFilter String
     | UpdateHauptmuskelgruppeFilter String
     | OpenTrainingModal (Maybe Training)
 
@@ -79,8 +69,8 @@ update msg model =
                 Err _ ->
                     ( { model | state = Failure "Fehler beim Laden der Trainings" }, Cmd.none )
 
-        UpdateEquipmentFilter newFilter ->
-            ( { model | equipmentFilter = newFilter }, Cmd.none )
+        UpdateBelastungFilter newFilter ->
+            ( { model | belastungFilter = newFilter }, Cmd.none )
 
         UpdateHauptmuskelgruppeFilter newFilter ->
             ( { model | hauptmuskelgruppeFilter = newFilter }, Cmd.none )
@@ -88,7 +78,6 @@ update msg model =
         OpenTrainingModal training ->
             ( { model | selectedTraining = training }, Cmd.none )
 
--- View Funktion
 
 exercisesView : Model -> Html Msg
 exercisesView model =
@@ -97,10 +86,11 @@ exercisesView model =
         , div [ class "panel" ]
             [ p [ class "panel-heading" ] [ text "Filter" ]
             , div [ class "panel-block" ]
-                [ select [ onInput UpdateEquipmentFilter ]
+                [ select [ onInput UpdateBelastungFilter ]
                     [ option [ value ""] [ text "Alle" ]
                     , option [ value "Freihantel" ] [ text "Freihantel" ]
                     , option [ value "Körpergewicht" ] [ text "Körpergewicht" ]
+                    , option [ value "Maschine" ] [ text "Maschine" ]
                     ]
                 ]
             , div [ class "panel-block" ]
@@ -116,10 +106,9 @@ exercisesView model =
             , p [ class "panel-tabs" ] []
             ]
         , div [ class "panel scrollable-panel" ]
-            (List.filter (\training -> (model.equipmentFilter == "" || training.equipment == model.equipmentFilter) && (model.hauptmuskelgruppeFilter == "" || training.hauptmuskelgruppe == model.hauptmuskelgruppeFilter)) model.trainings |> List.map viewTraining)
+            (List.filter (\training -> (model.belastungFilter == "" || training.belastung == model.belastungFilter) && (model.hauptmuskelgruppeFilter == "" || training.hauptmuskelgruppe == model.hauptmuskelgruppeFilter)) model.trainings |> List.map viewTraining)
         , trainingModalView model.selectedTraining
         ]
-
 
 viewTraining : Training -> Html Msg
 viewTraining training =
@@ -130,10 +119,9 @@ viewTraining training =
         [ div [ class "content" ]
             [ p [ class "title is-4" ] [ text training.name ]
             , p [ class "subtitle is-6" ] [ text training.hauptmuskelgruppe ]
-            , p [] [ text training.equipment ]
+            , p [] [ text training.belastung ]
             ]
         ]
-
 
 trainingModalView : Maybe Training -> Html Msg
 trainingModalView maybeTraining =
@@ -148,7 +136,7 @@ trainingModalView maybeTraining =
                 , div [ class "modal-content" ]
                     [ p [] [ text training.name ]
                     , p [] [ text training.hauptmuskelgruppe ]
-                    , p [] [ text training.equipment ]
+                    , p [] [ text training.belastung ]
                     , p [] [ text training.erklaerung ]
                     , a [ href training.youtubeLink ] [ text "Youtube Link" ]
                     ]

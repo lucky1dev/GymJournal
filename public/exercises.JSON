@@ -3,140 +3,140 @@
         {
             "Übungsname": "Bankdrücken",
             "Hauptmuskelgruppe": "Brust",
-            "Equipment": "Freihantel",
+            "Belastung": "Freihantel",
             "Erklärung": "Leg dich auf eine Bank mit einer Langhantel in der Hantelablage. Greife die Hantel etwas breiter als schulterbreit und drücke sie hoch, bis deine Arme fast gestreckt sind. Senke sie dann kontrolliert wieder ab.",
             "YoutubeLink": "http://youtube.com/placeholder"
         },
         {
             "Übungsname": "Fliegende",
             "Hauptmuskelgruppe": "Brust",
-            "Equipment": "Freihantel",
+            "Belastung": "Freihantel",
             "Erklärung": "Leg dich auf eine flache oder schräge Bank mit einer Hantel in jeder Hand. Hebe die Hanteln über deiner Brust hoch, mit leicht gebeugten Ellbogen. Senke die Hanteln seitlich ab, bis sie sich auf Höhe deiner Schultern befinden, und bringe sie dann wieder zusammen.",
             "YoutubeLink": "http://youtube.com/placeholder"
         },
         {
             "Übungsname": "Überkopfdrücken",
             "Hauptmuskelgruppe": "Schultern",
-            "Equipment": "Freihantel",
+            "Belastung": "Freihantel",
             "Erklärung": "Steh aufrecht und halte eine Hantel in Schulterhöhe. Drück die Hantel über deinem Kopf nach oben, bis deine Arme fast gestreckt sind. Senke sie dann kontrolliert zurück auf Schulterhöhe.",
             "YoutubeLink": "http://youtube.com/placeholder"
         },
         {
             "Übungsname": "Seitenheben",
             "Hauptmuskelgruppe": "Schultern",
-            "Equipment": "Freihantel",
+            "Belastung": "Freihantel",
             "Erklärung": "Steh aufrecht und halte eine Hantel in jeder Hand seitlich an deinen Körper. Hebe die Hanteln seitlich bis auf Schulterhöhe und senke sie dann kontrolliert wieder ab.",
             "YoutubeLink": "http://youtube.com/placeholder"
         },
         {
             "Übungsname": "Crunches",
             "Hauptmuskelgruppe": "Bauch",
-            "Equipment": "Körpergewicht",
+            "Belastung": "Körpergewicht",
             "Erklärung": "Leg dich auf den Rücken und beuge deine Knie. Lege deine Hände an die Seiten deines Kopfes und hebe deinen Oberkörper durch Zusammenziehen deiner Bauchmuskeln an. Senke dann deinen Oberkörper kontrolliert wieder ab.",
             "YoutubeLink": "http://youtube.com/placeholder"
         },
         {
             "Übungsname": "Beinheben",
             "Hauptmuskelgruppe": "Bauch",
-            "Equipment": "Körpergewicht",
+            "Belastung": "Körpergewicht",
             "Erklärung": "Leg dich auf den Rücken und strecke deine Beine aus. Hebe dann beide Beine an, bis sie einen rechten Winkel mit dem Boden bilden. Senke sie dann kontrolliert wieder ab.",
             "YoutubeLink": "http://youtube.com/placeholder"
         },
         {
             "Übungsname": "Kreuzheben",
             "Hauptmuskelgruppe": "Rücken",
-            "Equipment": "Freihantel",
+            "Belastung": "Freihantel",
             "Erklärung": "Stelle dich mit den Füßen hüftbreit vor eine Langhantel. Beuge dich mit geradem Rücken vor und greife die Hantel. Hebe die Hantel durch Strecken der Beine und des Rückens an. Senke sie dann kontrolliert wieder ab.",
             "YoutubeLink": "http://youtube.com/placeholder"
         },
         {
             "Übungsname": "Klimmzüge",
             "Hauptmuskelgruppe": "Rücken",
-            "Equipment": "Körpergewicht",
+            "Belastung": "Körpergewicht",
             "Erklärung": "Halte dich mit weit auseinander liegenden Händen an einer Klimmzugstange fest. Ziehe dich hoch, bis dein Kinn über der Stange ist. Senke dann kontrolliert wieder ab.",
             "YoutubeLink": "http://youtube.com/placeholder"
         },
         {
             "Übungsname": "Kniebeugen",
             "Hauptmuskelgruppe": "Beine",
-            "Equipment": "Freihantel",
+            "Belastung": "Freihantel",
             "Erklärung": "Stelle dich mit einer Langhantel auf deinen Schultern breitbeinig hin. Beuge deine Knie und senke deinen Körper, als ob du dich auf einen Stuhl setzen würdest, bis deine Oberschenkel parallel zum Boden sind. Drücke dich dann wieder hoch.",
             "YoutubeLink": "http://youtube.com/placeholder"
         },
         {
             "Übungsname": "Ausfallschritte",
             "Hauptmuskelgruppe": "Beine",
-            "Equipment": "Körpergewicht",
+            "Belastung": "Körpergewicht",
             "Erklärung": "Steh aufrecht und mache einen großen Schritt nach vorne mit einem Fuß. Beuge beide Knie, bis dein hinteres Knie fast den Boden berührt. Drück dich dann zurück in die Ausgangsposition.",
             "YoutubeLink": "http://youtube.com/placeholder"
         },
         {
             "Übungsname": "Kreuzheben",
             "Hauptmuskelgruppe": "Rücken",
-            "Equipment": "Freihantel",
+            "Belastung": "Freihantel",
             "Erklärung": "Stelle dich mit den Füßen hüftbreit vor eine Langhantel. Beuge dich mit geradem Rücken vor und greife die Hantel. Hebe die Hantel durch Strecken der Beine und des Rückens an. Senke sie dann kontrolliert wieder ab.",
             "YoutubeLink": "http://youtube.com/placeholder"
         },
         {
             "Übungsname": "Klimmzüge",
             "Hauptmuskelgruppe": "Rücken",
-            "Equipment": "Körpergewicht",
+            "Belastung": "Körpergewicht",
             "Erklärung": "Halte dich mit weit auseinander liegenden Händen an einer Klimmzugstange fest. Ziehe dich hoch, bis dein Kinn über der Stange ist. Senke dann kontrolliert wieder ab.",
             "YoutubeLink": "http://youtube.com/placeholder"
         },
         {
             "Übungsname": "Kniebeugen",
             "Hauptmuskelgruppe": "Beine",
-            "Equipment": "Freihantel",
+            "Belastung": "Freihantel",
             "Erklärung": "Stelle dich mit einer Langhantel auf deinen Schultern breitbeinig hin. Beuge deine Knie und senke deinen Körper, als ob du dich auf einen Stuhl setzen würdest, bis deine Oberschenkel parallel zum Boden sind. Drücke dich dann wieder hoch.",
             "YoutubeLink": "http://youtube.com/placeholder"
         },
         {
             "Übungsname": "Ausfallschritte",
             "Hauptmuskelgruppe": "Beine",
-            "Equipment": "Körpergewicht",
+            "Belastung": "Körpergewicht",
             "Erklärung": "Steh aufrecht und mache einen großen Schritt nach vorne mit einem Fuß. Beuge beide Knie, bis dein hinteres Knie fast den Boden berührt. Drück dich dann zurück in die Ausgangsposition.",
             "YoutubeLink": "http://youtube.com/placeholder"
         },
         {
             "Übungsname": "Schmetterling",
             "Hauptmuskelgruppe": "Brust",
-            "Equipment": "Maschine",
+            "Belastung": "Maschine",
             "Erklärung": "Setz dich an eine Schmetterlingsmaschine und greife die Griffe. Bewege die Arme zusammen, indem du deine Brustmuskulatur anspannst. Bewege dann die Arme kontrolliert wieder auseinander.",
             "YoutubeLink": "http://youtube.com/placeholder"
         },
         {
             "Übungsname": "Schulterdrücken",
             "Hauptmuskelgruppe": "Schultern",
-            "Equipment": "Maschine",
+            "Belastung": "Maschine",
             "Erklärung": "Setz dich an eine Schulterdrückmaschine und greife die Griffe. Drücke die Griffe nach oben, bis deine Arme fast gestreckt sind. Senke sie dann kontrolliert wieder ab.",
             "YoutubeLink": "http://youtube.com/placeholder"
         },
         {
             "Übungsname": "Beinpresse",
             "Hauptmuskelgruppe": "Beine",
-            "Equipment": "Maschine",
+            "Belastung": "Maschine",
             "Erklärung": "Setz dich in eine Beinpressemaschine und platziere deine Füße auf der Plattform. Drücke die Plattform weg, bis deine Beine fast gestreckt sind. Ziehe sie dann kontrolliert wieder zurück.",
             "YoutubeLink": "http://youtube.com/placeholder"
         },
         {
             "Übungsname": "Rudern",
             "Hauptmuskelgruppe": "Rücken",
-            "Equipment": "Maschine",
+            "Belastung": "Maschine",
             "Erklärung": "Setz dich an eine Rudermaschine und greife die Griffe. Ziehe die Griffe zu deinem Körper, indem du deine Rückenmuskulatur anspannst. Bewege dann die Arme kontrolliert wieder von deinem Körper weg.",
             "YoutubeLink": "http://youtube.com/placeholder"
         },
         {
             "Übungsname": "Sit-ups",
             "Hauptmuskelgruppe": "Bauch",
-            "Equipment": "Körpergewicht",
+            "Belastung": "Körpergewicht",
             "Erklärung": "Leg dich auf den Rücken und beuge deine Knie. Lege deine Hände an die Seiten deines Kopfes und hebe deinen Oberkörper durch Zusammenziehen deiner Bauchmuskeln an. Senke dann deinen Oberkörper kontrolliert wieder ab.",
             "YoutubeLink": "http://youtube.com/placeholder"
         },
         {
             "Übungsname": "Liegestütze",
             "Hauptmuskelgruppe": "Brust",
-            "Equipment": "Körpergewicht",
+            "Belastung": "Körpergewicht",
             "Erklärung": "Beginne in einer Plankenposition mit den Händen etwas breiter als schulterbreit auf dem Boden. Senke deinen Körper, indem du deine Ellbogen beugst, bis deine Brust fast den Boden berührt. Drücke dich dann wieder hoch.",
             "YoutubeLink": "http://youtube.com/placeholder"
         },
@@ -144,42 +144,42 @@
         {
             "Übungsname": "Dumbbell Flys",
             "Hauptmuskelgruppe": "Brust",
-            "Equipment": "Freihantel",
+            "Belastung": "Freihantel",
             "Erklärung": "Leg dich auf eine Bank mit einer Hantel in jeder Hand, Arme ausgestreckt und Handflächen zueinander zeigend. Senke die Hanteln seitlich in einer breiten Bogenbewegung, bis du eine Dehnung in deiner Brust fühlst. Bringe die Hanteln in der gleichen breiten Bogenbewegung wieder nach oben zusammen.",
             "YoutubeLink": "http://youtube.com/placeholder"
         },
         {
             "Übungsname": "Seitenheben",
             "Hauptmuskelgruppe": "Schultern",
-            "Equipment": "Freihantel",
+            "Belastung": "Freihantel",
             "Erklärung": "Steh mit einer Hantel in jeder Hand an deinen Seiten. Hebe die Hanteln seitlich bis zur Schulterhöhe an und senke sie dann kontrolliert wieder ab.",
             "YoutubeLink": "http://youtube.com/placeholder"
         },
         {
             "Übungsname": "Leg Curls",
             "Hauptmuskelgruppe": "Beine",
-            "Equipment": "Maschine",
+            "Belastung": "Maschine",
             "Erklärung": "Leg dich auf eine Beincurl-Maschine mit den Fersen unter den Rollen. Ziehe die Fersen zu deinem Po, indem du die Beinbeuger anspannst, und senke sie dann kontrolliert wieder ab.",
             "YoutubeLink": "http://youtube.com/placeholder"
         },
         {
             "Übungsname": "Lat Pulldown",
             "Hauptmuskelgruppe": "Rücken",
-            "Equipment": "Maschine",
+            "Belastung": "Maschine",
             "Erklärung": "Setz dich an eine Latzug-Maschine und greife die Stange breit. Ziehe die Stange zu deiner Brust, indem du die Latissimus-Muskeln anspannst, und lasse sie dann kontrolliert wieder hochfahren.",
             "YoutubeLink": "http://youtube.com/placeholder"
         },
         {
             "Übungsname": "Crunches",
             "Hauptmuskelgruppe": "Bauch",
-            "Equipment": "Körpergewicht",
+            "Belastung": "Körpergewicht",
             "Erklärung": "Leg dich auf den Rücken, die Knie gebeugt und die Hände am Hinterkopf. Hebe deinen Oberkörper ein kleines Stück vom Boden, indem du die Bauchmuskeln anspannst. Senke dann kontrolliert wieder ab.",
             "YoutubeLink": "http://youtube.com/placeholder"
         },
         {
             "Übungsname": "Dips",
             "Hauptmuskelgruppe": "Brust",
-            "Equipment": "Körpergewicht",
+            "Belastung": "Körpergewicht",
             "Erklärung": "Positioniere dich zwischen zwei parallelen Stangen. Drücke dich hoch, bis deine Arme vollständig ausgestreckt sind. Senke deinen Körper, indem du die Ellbogen beugst, und drücke dich dann wieder hoch.",
             "YoutubeLink": "http://youtube.com/placeholder"
         }

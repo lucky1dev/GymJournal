@@ -8,7 +8,7 @@ import Json.Decode
 import Json.Decode.Pipeline
 import Json.Encode
 import Firebase exposing (..)
-
+import Exercises exposing (..)
 
 
 -- MODEL
@@ -16,6 +16,11 @@ type alias Exercise =
     { name : String
     , sets : String
     , reps : String
+    , belastung : String
+    , start_reps : String
+    , start_weight : String
+    , reps_now : String 
+    , weight_now : String
     }
 
 type alias MessageContent =
@@ -33,32 +38,37 @@ type ModalMsg
     = InputWorkoutPlan WorkoutPlan
 
 type alias Model =
-    {  firebase : Firebase.Model 
+    { firebase : Firebase.Model 
+    , exercises : Exercises.Model
     , trainings : List WorkoutPlan
     , modal : Maybe ModalMsg
     , selectedPlanId : Maybe Int
     , dropdownOpen : Bool
     , messages : List MessageContent}
 
-init : Model
+init : ( Model, Cmd Msg )
 init =
-    {  firebase = Firebase.init 
-    , trainings = []
-    , modal = Nothing
-    , selectedPlanId = Nothing
-    , dropdownOpen = False
-    , messages = []
-    }
+    let
+        ( exercisesModel, exercisesCmd ) = Exercises.init
+    in
+    ( {  firebase = Firebase.init
+       , exercises = exercisesModel
+       , trainings = []
+       , modal = Nothing
+       , selectedPlanId = Nothing
+       , dropdownOpen = False
+       , messages = []
+       }
+    , Cmd.map ExercisesMsg exercisesCmd)
+
 
 type Msg
-
     = FirebaseMsg Firebase.Msg
+    | ExercisesMsg Exercises.Msg
   --  | DeleteWorkoutPlan Int
     | OpenModal ModalMsg
     | CloseModal
     | UpdateModal ModalMsg
- --   | UpdateWorkoutPlan Int WorkoutPlan
- --   | UpdateExercise Int Int Exercise
     | SaveModal
     | AddExercise 
     | SelectWorkoutPlan Int
@@ -71,12 +81,17 @@ type Msg
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
     case msg of
-
         FirebaseMsg subMsg ->
             let
                 (updatedFirebase, cmd) = Firebase.update subMsg model.firebase
             in
             ( { model | firebase = updatedFirebase }, Cmd.map FirebaseMsg cmd )
+
+        ExercisesMsg subMsg ->
+            let
+                (updatedExercises, cmd) = Exercises.update subMsg model.exercises
+            in
+            ( { model | exercises = updatedExercises }, Cmd.map ExercisesMsg cmd )
         
 
  --       DeleteWorkoutPlan id ->
@@ -91,18 +106,6 @@ update msg model =
         UpdateModal modalMsg ->
             ( { model | modal = Just modalMsg }, Cmd.none )
 
- {-       UpdateWorkoutPlan id updatedPlan ->
-            let
-                updatedSaved = List.indexedMap (\idx plan -> if idx == id then { plan | title = updatedPlan.title, weekday = updatedPlan.weekday } else plan) model.saved
-            in
-            ( { model | saved = updatedSaved }, Cmd.none )
-
-        UpdateExercise id exerciseId updatedExercise ->
-            let
-                updatedSaved = List.indexedMap (\idx plan -> if idx == id then { plan | exercises = List.indexedMap (\idx2 ex -> if idx2 == exerciseId then updatedExercise else ex) plan.exercises } else plan) model.saved
-            in
-            ( { model | saved = updatedSaved }, Cmd.none )
--}
         SaveModal ->
             case model.modal of
                 Nothing ->
@@ -118,15 +121,14 @@ update msg model =
                                     1
                                          
                     in
-                    (  model -- modal = nothing
-                    --( { model | saved = { plan | id = uniqueId } :: model.saved, modal = Nothing }, Firebase.saveWorkoutPlan <| messageEncoderWorkoutplan { plan | id = uniqueId } )
+                    (  { model | modal = Nothing }
                         , Firebase.saveWorkoutPlan <| messageEncoderWorkoutplan { plan | id = uniqueId } )
 
         AddExercise ->
             case model.modal of
                 Just (InputWorkoutPlan workoutPlan) ->
                     let
-                        updatedWorkoutPlan = { workoutPlan | exercises = workoutPlan.exercises ++ [ { name = "", sets = "", reps = "" } ] }
+                        updatedWorkoutPlan = { workoutPlan | exercises = workoutPlan.exercises ++ [ { name = "", sets = "", reps = "", belastung = "", start_reps = "", start_weight = "", reps_now = "", weight_now = ""} ] }
                     in
                     ( { model | modal = Just (InputWorkoutPlan updatedWorkoutPlan) }, Cmd.none )
 
@@ -184,6 +186,12 @@ exerciseDecoder =
         |> Json.Decode.Pipeline.required "name" Json.Decode.string
         |> Json.Decode.Pipeline.required "sets" Json.Decode.string
         |> Json.Decode.Pipeline.required "reps" Json.Decode.string
+        |> Json.Decode.Pipeline.required "belastung" Json.Decode.string
+        |> Json.Decode.Pipeline.required "start_reps" Json.Decode.string
+        |> Json.Decode.Pipeline.required "start_weight" Json.Decode.string
+        |> Json.Decode.Pipeline.required "reps_now" Json.Decode.string
+        |> Json.Decode.Pipeline.required "weight_now" Json.Decode.string
+
 
 
 messageEncoderWorkoutplan: WorkoutPlan -> Json.Encode.Value
@@ -206,10 +214,12 @@ encodeExercise exercise =
         [ ( "name", Json.Encode.string exercise.name )
         , ( "sets", Json.Encode.string exercise.sets )
         , ( "reps", Json.Encode.string exercise.reps )
+        , ( "belastung", Json.Encode.string exercise.belastung )
+        , ( "start_reps", Json.Encode.string exercise.start_reps )
+        , ( "start_weight", Json.Encode.string exercise.start_weight )
+        , ( "reps_now", Json.Encode.string exercise.reps_now )
+        , ( "weight_now", Json.Encode.string exercise.weight_now )
         ]
-
-
--- VIEW
 
 planningView : Model -> Html Msg
 planningView model =
@@ -246,7 +256,6 @@ buttonBar model =
              _ ->
                 createDropDownMenu model
         ]
-
 
 createDropDownMenu : Model -> Html Msg
 createDropDownMenu model =
@@ -287,8 +296,6 @@ createDropDownMenu model =
                 [ div [ class "dropdown-content" ] (List.concatMap (\plan -> [button [class "button is-white dropdown-item", onClick (SelectWorkoutPlan plan.id)] [text (plan.title ++ " : " ++ plan.weekday)]]) model.trainings) ]
             ]
         ]
-
-
 
 mainView : Model -> Html Msg
 mainView model =

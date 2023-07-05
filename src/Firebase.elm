@@ -7,8 +7,6 @@ import Json.Decode
 import Json.Decode.Pipeline
 import Json.Encode
 
-
-
 port signIn : () -> Cmd msg
 
 
@@ -25,8 +23,6 @@ port saveWorkoutPlan : Json.Encode.Value -> Cmd msg
 
 
 port receiveWorkoutPlans : (Json.Encode.Value -> msg) -> Sub msg
-
-
 
 
 type alias ErrorData =
@@ -59,7 +55,6 @@ emptyError =
     { code = Maybe.Nothing, credential = Maybe.Nothing, message = Maybe.Nothing }    
 
 
-
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -85,13 +80,6 @@ update msg model =
                 Err error ->
                     ( { model | error = messageToError <| Json.Decode.errorToString error }, Cmd.none )
 
-
-
-
-
-
-
-
 messageToError : String -> ErrorData
 messageToError message =
     { code = Maybe.Nothing, credential = Maybe.Nothing, message = Just message }
@@ -116,10 +104,6 @@ logInErrorDecoder =
         |> Json.Decode.Pipeline.required "code" (Json.Decode.nullable Json.Decode.string)
         |> Json.Decode.Pipeline.required "message" (Json.Decode.nullable Json.Decode.string)
         |> Json.Decode.Pipeline.required "credential" (Json.Decode.nullable Json.Decode.string)
-
-
-
-
 
 loginView: Model -> Html Msg
 loginView model =

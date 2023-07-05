@@ -9,7 +9,6 @@ import Svg.Attributes as SvgA exposing (fill)
 import Process exposing (sleep)
 import Task
 
-
 type alias Model =
     { startWeight : Float
     , currentWeight : Float
@@ -17,7 +16,6 @@ type alias Model =
     , percentage : Float
     , isAnimating : Bool
     }
-
 
 init : Model
 init  =
@@ -28,11 +26,9 @@ init  =
         ,percentage = 0 
         , isAnimating = False }
 
-
 type Msg
     = ToggleAnimation
     | IncreaseWeight
-
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -56,7 +52,6 @@ update msg model =
                     newPercentage = (newWeight / model.maxWeight) * 100
                 in
                 ( { model | currentWeight = newWeight, percentage = newPercentage }, Task.perform (always IncreaseWeight) (Process.sleep 5) )
-
 
 view : Model -> Html Msg
 view model =
