@@ -4,7 +4,7 @@ import * as serviceWorker from './serviceWorker';
 
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInWithPopup, signOut, GoogleAuthProvider, onAuthStateChanged } from "firebase/auth";
-import { query, getFirestore, collection, addDoc, onSnapshot, doc, setDoc } from "firebase/firestore"; 
+import { query, getFirestore, collection, addDoc, onSnapshot, doc, setDoc, deleteDoc } from "firebase/firestore"; 
 
 const firebaseConfig = {
   apiKey: "AIzaSyABWGM8j-KM1_cikpSY8wRN32MYAvEYSuQ",
@@ -89,9 +89,7 @@ onAuthStateChanged(auth, user => {
               sets: exercise.sets,
               reps: exercise.reps,
               belastung: exercise.belastung,
-              start_reps: exercise.start_reps,
               start_weight: exercise.start_weight,
-              reps_now: exercise.reps_now,
               weight_now: exercise.weight_now
             };
           });
@@ -121,9 +119,7 @@ app.ports.saveWorkoutPlan.subscribe(data => {
       sets: exercise.sets,
       reps: exercise.reps,
       belastung: exercise.belastung,
-      start_reps: exercise.start_reps,
       start_weight: exercise.start_weight,
-      reps_now: exercise.reps_now,
       weight_now: exercise.weight_now
     };
   });
@@ -140,6 +136,21 @@ app.ports.saveWorkoutPlan.subscribe(data => {
       message: error.message
     });
   });
+});
+
+app.ports.deleteWorkoutPlan.subscribe(id => {
+  console.log(`Deleting workout plan from database: ${id}`);
+
+  deleteDoc(doc(db, `users/${auth.currentUser.uid}/workoutplans`, id))
+    .then(() => {
+      console.log(`Successfully deleted workout plan: ${id}`);
+    })
+    .catch(error => {
+      app.ports.signInError.send({
+        code: error.code,
+        message: error.message
+      });
+    });
 });
 
 serviceWorker.unregister();

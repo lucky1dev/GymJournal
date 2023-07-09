@@ -82,10 +82,9 @@ update msg model =
                      , planning = { firebase = updatedFirebase 
                                     ,exercises = model.planning.exercises
                                     ,trainings = model.planning.trainings
-                                    ,modal = model.planning.modal
                                     ,selectedPlanId = model.planning.selectedPlanId
-                                    ,dropdownOpen = model.planning.dropdownOpen 
-                                    ,messages = model.planning.messages}
+                                    ,dropdownOpen = model.planning.dropdownOpen
+                                    ,newPlan = model.planning.newPlan }
                }
             , Cmd.map FirebaseMsg cmd )
 

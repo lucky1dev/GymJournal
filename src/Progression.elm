@@ -1,30 +1,35 @@
 module Progression exposing (..)
 
-
 import Html exposing (Html, button, div, text)
-import Html.Events exposing (onClick)
-import Html.Attributes exposing (style)
+import Html.Events exposing (..)
+import Html.Attributes exposing (..)
 import Svg exposing (..)
 import Svg.Attributes as SvgA exposing (fill)
 import Process exposing (sleep)
 import Task
 
-type alias Model =
-    { startWeight : Float
+type alias Exercise =
+    { name : String
+    , startWeight : Float
     , currentWeight : Float
-    , maxWeight : Float
+    }
+
+type alias Model =
+    { exercises : List Exercise
     , percentage : Float
     , isAnimating : Bool
     }
 
 init : Model
 init  =
-    {
-         startWeight = 100 
-        ,currentWeight = 0 
-        ,maxWeight = 200 
-        ,percentage = 0 
-        , isAnimating = False }
+    { exercises = 
+        [ { name = "Bankdrücken"
+          , startWeight = 50 
+          , currentWeight = 50 
+          } ]
+    , percentage = 0 
+    , isAnimating = False 
+    }
 
 type Msg
     = ToggleAnimation
@@ -35,38 +40,38 @@ update msg model =
     case msg of
         ToggleAnimation ->
             let
-                newModel =
-                    { model | isAnimating = not model.isAnimating }
+                newModel = { model | isAnimating = not model.isAnimating }
             in
             if newModel.isAnimating then
-                ( newModel, Task.perform (always IncreaseWeight) (Process.sleep 1) )
+                ( newModel, Task.perform (always IncreaseWeight) (Process.sleep 100) )
             else
                 ( newModel, Cmd.none )
 
         IncreaseWeight ->
-            if model.currentWeight >= model.maxWeight then
+            let
+                exercise = List.head model.exercises |> Maybe.withDefault { name = "", startWeight = 0, currentWeight = 0 }
+                newWeight = exercise.currentWeight + 1
+                newPercentage = ((newWeight - exercise.startWeight) / exercise.startWeight) * 100
+                updatedExercise = { exercise | currentWeight = newWeight }
+            in
+            if newWeight > exercise.startWeight + exercise.startWeight then
                 ( model, Cmd.none )
             else
-                let
-                    newWeight = model.currentWeight + 1
-                    newPercentage = (newWeight / model.maxWeight) * 100
-                in
-                ( { model | currentWeight = newWeight, percentage = newPercentage }, Task.perform (always IncreaseWeight) (Process.sleep 5) )
+                ( { model | exercises = [updatedExercise], percentage = newPercentage }, Task.perform (always IncreaseWeight) (Process.sleep 100) )
 
 view : Model -> Html Msg
 view model =
-
-    div [ Html.Attributes.style "display" "flex", Html.Attributes.style "justify-content" "center", Html.Attributes.style "align-items" "center", Html.Attributes.style "height" "100vh" ]
-            [ svg [ SvgA.viewBox "0 0 150 150", SvgA.width "100%", SvgA.height "300px" ]
-                [ g [ SvgA.transform "translate(10, 110) scale(1, -1)" ]
-                    [ rect [ SvgA.x "0", SvgA.y "0", SvgA.width "40", SvgA.height (String.fromFloat (model.startWeight / model.maxWeight * 100)), fill "green" ] []
-                    , rect [ SvgA.x "50", SvgA.y "0", SvgA.width "40", SvgA.height (String.fromFloat (model.currentWeight / model.maxWeight * 100)), fill "red" ] []
+    let
+        exercise = List.head model.exercises |> Maybe.withDefault { name = "", startWeight = 0, currentWeight = 0 }
+    in
+    div [ Html.Attributes.style "display" "flex", Html.Attributes.style "justify-content" "center", Html.Attributes.style "align-items" "center", Html.Attributes.style "height" "100vh", Html.Attributes.style "flex-direction" "column" ]
+          [ div [] [ Html.text exercise.name ]
+          , button [class "button is-danger", onClick ToggleAnimation ] [ Html.text "Toggle Animation" ]
+          , svg [ SvgA.viewBox "0 0 120 100", SvgA.width "240px", SvgA.height "70%" ]
+                [ g [ SvgA.transform "translate(10, 10)"]
+                    [ 
+                     rect [ SvgA.x "0", SvgA.y "50", SvgA.height "15", SvgA.width (String.fromFloat model.percentage), fill "cyan" ] []
                     ]
-                , Svg.text_ [ SvgA.x "20", SvgA.y "125", SvgA.fontSize "10", SvgA.textAnchor "middle" ] [ Svg.text (String.fromFloat model.startWeight ++ " kg") ]
-                , Svg.text_ [ SvgA.x "70", SvgA.y "125", SvgA.fontSize "10", SvgA.textAnchor "middle" ] [ Svg.text (String.fromFloat model.currentWeight ++ " kg (" ++ String.fromFloat model.percentage ++ "%)") ]
+                , Svg.text_ [ SvgA.x "110", SvgA.y "65", SvgA.fontSize "10", SvgA.textAnchor "middle" ] [ Svg.text (String.fromInt (round model.percentage) ++ "%") ]
                 ]
-            , button [ onClick ToggleAnimation ] [ Html.text "Toggle Animation" ]
             ]
-        
-
-

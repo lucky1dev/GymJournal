@@ -9,6 +9,8 @@ import Json.Decode.Pipeline
 import Json.Encode
 import Firebase exposing (..)
 import Exercises exposing (..)
+import Svg exposing (..)
+import Svg.Attributes exposing (..)
 
 
 -- MODEL
@@ -17,14 +19,10 @@ type alias Exercise =
     , sets : String
     , reps : String
     , belastung : String
-    , start_reps : String
-    , start_weight : String
-    , reps_now : String 
-    , weight_now : String
+    , start_weight : Float
+    , weight_now : Float
     }
 
-type alias MessageContent =
-    { content : String, time : String, date : String}
 
 type alias WorkoutPlan =
     { userid : String
@@ -34,17 +32,15 @@ type alias WorkoutPlan =
     , exercises : List Exercise
     }
 
-type ModalMsg
-    = InputWorkoutPlan WorkoutPlan
+
 
 type alias Model =
     { firebase : Firebase.Model 
     , exercises : Exercises.Model
     , trainings : List WorkoutPlan
-    , modal : Maybe ModalMsg
     , selectedPlanId : Maybe Int
     , dropdownOpen : Bool
-    , messages : List MessageContent}
+    , newPlan : Maybe WorkoutPlan}
 
 init : ( Model, Cmd Msg )
 init =
@@ -54,10 +50,9 @@ init =
     ( {  firebase = Firebase.init
        , exercises = exercisesModel
        , trainings = []
-       , modal = Nothing
        , selectedPlanId = Nothing
        , dropdownOpen = False
-       , messages = []
+       , newPlan = Nothing
        }
     , Cmd.map ExercisesMsg exercisesCmd)
 
@@ -65,12 +60,16 @@ init =
 type Msg
     = FirebaseMsg Firebase.Msg
     | ExercisesMsg Exercises.Msg
-  --  | DeleteWorkoutPlan Int
-    | OpenModal ModalMsg
-    | CloseModal
-    | UpdateModal ModalMsg
-    | SaveModal
-    | AddExercise 
+    | DeleteWorkoutPlan Int
+
+    | OpenInput 
+    | CloseInput
+    | UpdateInput WorkoutPlan
+    | SaveInput WorkoutPlan
+    | AddExercise WorkoutPlan 
+    | RemoveExercise WorkoutPlan Int
+
+
     | SelectWorkoutPlan Int
     | ToggleDropdown
     | WorkoutPlansReceived (Result Json.Decode.Error (List WorkoutPlan))
@@ -94,24 +93,30 @@ update msg model =
             ( { model | exercises = updatedExercises }, Cmd.map ExercisesMsg cmd )
         
 
- --       DeleteWorkoutPlan id ->
- --           ( { model | saved = List.filter (\plan -> plan.id /= id) model.saved }, Cmd.none )
+        DeleteWorkoutPlan id ->
+            let idString = String.fromInt id
+            in
+            ( model, Firebase.deleteWorkoutPlan idString )
 
-        OpenModal modalMsg ->
-            ( { model | modal = Just modalMsg }, Cmd.none )
+        OpenInput  ->
+            let
+                            uid = 
+                                case model.firebase.userData of
+                                    Just data ->
+                                        data.uid
+                                    Nothing ->
+                                        "no uid"
 
-        CloseModal ->
-            ( { model | modal = Nothing }, Cmd.none )
+             in 
+            ( { model | newPlan = Just {userid = uid, id = 1 ,title = "", weekday = "", exercises = [] } , selectedPlanId = Nothing }, Cmd.none )
 
-        UpdateModal modalMsg ->
-            ( { model | modal = Just modalMsg }, Cmd.none )
+        CloseInput ->
+            ( { model | newPlan = Nothing }, Cmd.none )
 
-        SaveModal ->
-            case model.modal of
-                Nothing ->
-                    ( model, Cmd.none )
-                    
-                Just (InputWorkoutPlan plan) ->
+        UpdateInput workoutplan ->
+            ( { model | newPlan = Just workoutplan }, Cmd.none )
+
+        SaveInput workoutplan ->
                     let
                         uniqueId = 
                             case   List.maximum (List.map .id model.trainings) of
@@ -121,19 +126,24 @@ update msg model =
                                     1
                                          
                     in
-                    (  { model | modal = Nothing }
-                        , Firebase.saveWorkoutPlan <| messageEncoderWorkoutplan { plan | id = uniqueId } )
+                    (  { model | newPlan = Nothing }
+                        , Firebase.saveWorkoutPlan <| messageEncoderWorkoutplan { workoutplan | id = uniqueId } )
 
-        AddExercise ->
-            case model.modal of
-                Just (InputWorkoutPlan workoutPlan) ->
-                    let
-                        updatedWorkoutPlan = { workoutPlan | exercises = workoutPlan.exercises ++ [ { name = "", sets = "", reps = "", belastung = "", start_reps = "", start_weight = "", reps_now = "", weight_now = ""} ] }
-                    in
-                    ( { model | modal = Just (InputWorkoutPlan updatedWorkoutPlan) }, Cmd.none )
+        AddExercise workoutplan ->
+            let
+                emptyExercise = { name = "", sets = "", reps = "", belastung = "", start_weight = 0 , weight_now = 0}
+                updatedExercises = workoutplan.exercises ++ [emptyExercise]
+                updatedWorkoutPlan = { workoutplan | exercises = updatedExercises }
+            in
+            ( { model | newPlan =  Just updatedWorkoutPlan }, Cmd.none )
 
-                _ ->
-                    ( model, Cmd.none )
+
+        RemoveExercise workoutPlan index ->
+            let
+                updatedExercises = List.take index workoutPlan.exercises ++ List.drop (index + 1) workoutPlan.exercises
+                updatedWorkoutPlan = { workoutPlan | exercises = updatedExercises }
+            in
+            ( { model | newPlan = Just updatedWorkoutPlan }, Cmd.none )
     
         ToggleDropdown ->
             ( { model | dropdownOpen = not model.dropdownOpen }, Cmd.none )
@@ -151,17 +161,8 @@ update msg model =
                     ( { model | trainings = [] }, Cmd.none )
 
 
-messageDecoder : Json.Decode.Decoder MessageContent
-messageDecoder =
-    Json.Decode.succeed MessageContent
-        |> Json.Decode.Pipeline.required "content" Json.Decode.string
-        |> Json.Decode.Pipeline.required "date" Json.Decode.string
-        |> Json.Decode.Pipeline.required "time" Json.Decode.string
 
 
-messageListDecoder : Json.Decode.Decoder (List MessageContent)
-messageListDecoder =
-    Json.Decode.list messageDecoder
 
 workoutListDecoder : Json.Decode.Decoder (List WorkoutPlan)
 workoutListDecoder =
@@ -187,10 +188,8 @@ exerciseDecoder =
         |> Json.Decode.Pipeline.required "sets" Json.Decode.string
         |> Json.Decode.Pipeline.required "reps" Json.Decode.string
         |> Json.Decode.Pipeline.required "belastung" Json.Decode.string
-        |> Json.Decode.Pipeline.required "start_reps" Json.Decode.string
-        |> Json.Decode.Pipeline.required "start_weight" Json.Decode.string
-        |> Json.Decode.Pipeline.required "reps_now" Json.Decode.string
-        |> Json.Decode.Pipeline.required "weight_now" Json.Decode.string
+        |> Json.Decode.Pipeline.required "start_weight" Json.Decode.float
+        |> Json.Decode.Pipeline.required "weight_now" Json.Decode.float
 
 
 
@@ -215,23 +214,18 @@ encodeExercise exercise =
         , ( "sets", Json.Encode.string exercise.sets )
         , ( "reps", Json.Encode.string exercise.reps )
         , ( "belastung", Json.Encode.string exercise.belastung )
-        , ( "start_reps", Json.Encode.string exercise.start_reps )
-        , ( "start_weight", Json.Encode.string exercise.start_weight )
-        , ( "reps_now", Json.Encode.string exercise.reps_now )
-        , ( "weight_now", Json.Encode.string exercise.weight_now )
+        , ( "start_weight", Json.Encode.float exercise.start_weight )
+        , ( "weight_now", Json.Encode.float exercise.weight_now )
         ]
+
+
 
 planningView : Model -> Html Msg
 planningView model =
-    div [Html.Attributes.classList [ ( "animate__animated animate__fadeIn", True ) ], style "display" "flex", style "align-items" "center", style "justify-content" "center", style "gap" "20px"] 
-        [div [ class "rows" ][ buttonBar model
-        , mainView model 
-        , case model.modal of
-            Nothing ->
-                text ""
-
-            Just modalMsg ->
-                modalView modalMsg
+    div [Html.Attributes.classList [ ( "animate__animated animate__fadeIn", True ) ], Html.Attributes.style "display" "flex", Html.Attributes.style "align-items" "center", Html.Attributes.style "justify-content" "center", Html.Attributes.style "gap" "20px"] 
+        [div [ Html.Attributes.class "rows" ][ buttonBar model
+        , planView model
+        , inputWorkoutPlanView model
         ]]
 
 buttonBar : Model -> Html Msg
@@ -245,14 +239,13 @@ buttonBar model =
                                         "no uid"
 
     in 
-    div [ class "columns" ]
-        [ button [ class "button is-success", style "margin" "20px", onClick (OpenModal (InputWorkoutPlan {userid = uid, id = 1 ,title = "", weekday = "", exercises = [] })) ]
-            [ span [] [ text "Add Workoutplan" ]
-            
+    div [ Html.Attributes.class "columns" ]
+        [ button [ Html.Attributes.class "button is-success", Html.Attributes.style "margin" "20px", onClick OpenInput ]
+            [ span [] [ Html.text "Add Workoutplan" ]  
             ]
         , case model.trainings of
              [] ->
-                text ""
+                Html.text ""
              _ ->
                 createDropDownMenu model
         ]
@@ -278,106 +271,153 @@ createDropDownMenu model =
                         "Trainingsplan auswählen"
         icon = if model.dropdownOpen then "fa fa-angle-up" else "fa fa-angle-down"
     in
-    div [ class "level-item" ]
-        [ div [ class ("dropdown " ++ isActive) ]
-            [ div [ class "dropdown-trigger" ]
-                [ button [ class "button is-white"
-                         , style "width" "200px"
+    div [ Html.Attributes.class "level-item" ]
+        [ div [ Html.Attributes.class ("dropdown " ++ isActive) ]
+            [ div [ Html.Attributes.class "dropdown-trigger" ]
+                [ button [ Html.Attributes.class "button is-white"
+                         , Html.Attributes.style "width" "200px"
                          , Html.Attributes.attribute "aria-haspopup" "true"
                          , Html.Attributes.attribute "aria-controls" "dropdown-menu"
                          , onClick ToggleDropdown
                          ]
-                    [ span [] [ text caption ]
-                    , span [ class "icon is-small" ]
-                        [ i [ class icon, Html.Attributes.attribute "aria-hidden" "true" ] [] ]
+                    [ span [] [ Html.text caption ]
+                    , span [ Html.Attributes.class "icon is-small" ]
+                        [ i [ Html.Attributes.class icon, Html.Attributes.attribute "aria-hidden" "true" ] [] ]
                     ]
                 ]
-            , div [ class "dropdown-menu", id "dropdown-menu3", Html.Attributes.attribute "role" "menu" ]
-                [ div [ class "dropdown-content" ] (List.concatMap (\plan -> [button [class "button is-white dropdown-item", onClick (SelectWorkoutPlan plan.id)] [text (plan.title ++ " : " ++ plan.weekday)]]) model.trainings) ]
+            , div [ Html.Attributes.class "dropdown-menu", Html.Attributes.id "dropdown-menu3", Html.Attributes.attribute "role" "menu" ]
+                [ div [ Html.Attributes.class "dropdown-content" ] (List.concatMap (\plan -> [button [Html.Attributes.class "button is-white dropdown-item", onClick (SelectWorkoutPlan plan.id)] [Html.text (plan.title ++ " : " ++ plan.weekday)]]) model.trainings) ]
             ]
         ]
 
-mainView : Model -> Html Msg
-mainView model =
+planView : Model -> Html Msg
+planView model =
     let
         selectedPlan = List.filter (\plan -> Just plan.id == model.selectedPlanId) model.trainings
+
     in
     case selectedPlan of
         [] ->
-            text ""
+            Html.text ""
 
         plan :: _ ->
             div [] [
-            div [ class "table-container" ]
-                [ table [ class "table is-hoverable" ]
+            div [ Html.Attributes.class "table-container" ]
+                [ table [ Html.Attributes.class "table is-hoverable" ]
                     [ thead []
                         [ tr []
-                            [ th [] [ text "Exercise" ]
-                            , th [] [ text "Sets" ]
-                            , th [] [ text "Reps" ] 
-                            , th [] [ text "Gewicht" ]  -- if exercise = equipped
+                            [ th [Html.Attributes.style "color" "green"] [Html.text "Übung" ]
+                            , th [Html.Attributes.style "color" "green"] [ Html.text "Sets" ]
+                            , th [Html.Attributes.style "color" "green"] [ Html.text "Reps" ] 
+                            , th [Html.Attributes.style "color" "red"] [ Html.text "Load" ] 
+                            , th [Html.Attributes.style "color" "#6a5acd"] [ Html.text "Progress"]
                             ]
                         ]
                     , tbody []
                         (List.map (\exercise -> 
+
+                        let progress = round (progressPercentage exercise)
+
+                        in
                             tr []
-                            [ td [] [ text exercise.name ]
-                            , td [] [ text exercise.sets ]
-                            , td [] [ text exercise.reps ]
-                            , td [] [ text "Bsp. 50kg" ]
-                            , button [class "button is-info"] [text "Gewicht aktualisieren"]  -- if exercise = equipped else Reps aktualisieren
+                            [
+                              td [Html.Attributes.style "color" "green", Html.Attributes.class "animate__animated animate__fadeInLeft"] [ Html.text exercise.name]
+                            , td [Html.Attributes.style "color" "green", Html.Attributes.class "animate__animated animate__fadeInLeft"] [ Html.text exercise.sets ]
+                            , td [Html.Attributes.style "color" "green", Html.Attributes.class "animate__animated animate__fadeInLeft"] [ Html.text exercise.reps ]
+                            , 
+                            case exercise.belastung of
+                                "Körpergewicht" ->
+                                     td [Html.Attributes.style "color" "red", Html.Attributes.class "animate__animated animate__fadeInDown"] [ Html.text "5 reps" ]
+
+                                _ ->
+                                        td [Html.Attributes.style "color" "red", Html.Attributes.class "animate__animated animate__fadeInDown"] [ Html.text "50 kg" ]
+                            ,  td 
+                                    [ Html.Attributes.style "display" "flex"
+                                    , Html.Attributes.style "justify-content" "center" 
+                                    , Html.Attributes.style "align-items" "center" 
+                                    , Html.Attributes.class "animate__animated animate__fadeInRight"
+                                    ] 
+                                    [progressBar exercise]
+                                 
                             ]) plan.exercises)
                     ]
                 ]
-             , div [] [button [class "button is-danger"][text "Trainingsplan löschen"]]]
+             , div [] [button [Html.Attributes.class "button is-danger", onClick (DeleteWorkoutPlan plan.id)][Html.text "Trainingsplan löschen"]]]
+
+{-
+, case exercise.belastung of
+                                "Körpergewicht" ->
+                                     button [class "button is-info"] [text "W A"]
 
 
-modalView : ModalMsg -> Html Msg
-modalView modalMsg =
-    case modalMsg of
-        InputWorkoutPlan plan ->
-            inputWorkoutPlanModal plan
+                                _ ->
+                                        button [class "button is-info"] [text "G A"]   
+-}
 
-    
-inputWorkoutPlanModal : WorkoutPlan -> Html Msg
-inputWorkoutPlanModal plan =
-    div [ class "modal is-active"]
-        [ div [ class "modal-background" ] []
-        , div [ class "modal-content" ]
-            [ div [ class "container", style "background-color" "rgba(255, 255, 255, 0.9)", style "display" "flex", style "flex-direction" "column", style "align-items" "center", style "justify-content" "center", style "gap" "10px", style "padding" "20px", style "border-radius" "40px" ]
-                [ p [class "is-size-4", style "color" "#333"] [text "Name"] 
-                , input [ class "input is-rounded", type_ "text", value plan.title, onInput (\newTitle -> UpdateModal (InputWorkoutPlan { plan | title = newTitle })), style "border-radius" "25px", style "border" "2px solid #ccc", style "padding" "10px" ] []
-                , p [class "is-size-4", style "color" "#333"] [text "Wochentag"] 
-                , input [ class "input is-rounded ", type_ "text", value plan.weekday, onInput (\newWeekday -> UpdateModal (InputWorkoutPlan { plan | weekday = newWeekday })), style "border-radius" "25px", style "border" "2px solid #ccc", style "padding" "10px" ] []
-                , div [] (List.indexedMap (\idx exercise -> inputExerciseInModal idx plan exercise) plan.exercises)
-                , div [ style "display" "flex", style "justify-content" "center", style "align-items" "center", style "gap" "10px" ]
-                    [ button [ class "button is-danger", onClick AddExercise, style "border-radius" "25px" ] [ text "Übung hinzufügen" ] 
-                    , button [ class "button is-success", onClick SaveModal, style "border-radius" "25px" ] [ text "Speichern" ]
-                    , button [ class "button", onClick CloseModal, style "border-radius" "25px" ] [ text "Schließen" ]
-                    ]
+inputWorkoutPlanView : Model -> Html Msg
+inputWorkoutPlanView model =
+    case model.newPlan of
+        Nothing ->
+            Html.text ""
+
+        Just workoutPlan ->
+            div []
+                [ input [ placeholder "Title", onInput (\title -> UpdateInput { workoutPlan | title = title }) ] []
+                , input [ placeholder "Weekday", onInput (\weekday -> UpdateInput { workoutPlan | weekday = weekday }) ] []
+                , div [] (List.indexedMap (exerciseInput model workoutPlan) workoutPlan.exercises)
+                , button [ onClick (AddExercise workoutPlan) ] [ Html.text "Add Exercise" ]
+                , button [ onClick (SaveInput workoutPlan) ] [ Html.text "Save Workout Plan" ]
                 ]
-            ]  
+
+        
+
+
+exerciseInput : Model -> WorkoutPlan -> Int -> Exercise -> Html Msg
+exerciseInput model workoutPlan index exercise =
+    let
+        updateExercise trainingName sets reps =
+            let
+                maybeTraining = List.filter (\t -> t.name == trainingName) model.exercises.trainings |> List.head
+                belastung = case maybeTraining of
+                                Just training -> training.belastung
+                                Nothing -> ""
+
+                newExercise = { name = trainingName, sets = sets, reps = reps, belastung = belastung, start_weight = 0, weight_now = 0 }
+                updatedExercises = List.indexedMap (\i ex -> if i == index then newExercise else ex) workoutPlan.exercises
+                
+            in
+            UpdateInput { workoutPlan | exercises = updatedExercises }
+    in
+    div []
+        [ select [ onInput (\name -> updateExercise name exercise.sets exercise.reps) ] (trainingOptions model.exercises.trainings)
+        , input [ placeholder "Sets", onInput (\sets -> updateExercise exercise.name sets exercise.reps) ] []
+        , input [ placeholder "Reps", onInput (\reps -> updateExercise exercise.name exercise.sets reps) ] []
+        , button [ onClick (RemoveExercise workoutPlan index) ] [ Html.text "Übung entfernen" ]
         ]
 
-inputExerciseInModal : Int -> WorkoutPlan -> Exercise -> Html Msg
-inputExerciseInModal idx plan exercise =
-    div [ style "display" "flex", style "flex-direction" "row", style "gap" "10px"]
-        [ div [ class "field" ]
-            [ label [ class "label" ] [ text "Übung" ]
-            , div [ class "control" ]
-                [ input [ class "input", type_ "text", value exercise.name, onInput (\newName -> UpdateModal (InputWorkoutPlan { plan | exercises = List.indexedMap (\i ex -> if i == idx then { ex | name = newName } else ex) plan.exercises })) ] []
+
+trainingOptions : List Training -> List (Html Msg)
+trainingOptions trainings =
+    option [ value "", selected True, disabled True ] [ Html.text "Übung auswählen" ] :: List.map (\training -> option [ value training.name ] [ Html.text training.name ]) trainings
+
+progressPercentage : Exercise -> Float
+progressPercentage exercise =
+   ( ( exercise.weight_now /  exercise.start_weight) - 1 )  * 100
+
+
+progressBar : Exercise -> Svg.Svg msg
+progressBar exercise =
+    let
+        progress = round (progressPercentage exercise)
+        progressWidth = String.fromInt ( progress // 1  ) ++ "%"
+    in
+        if progress >= 100 then
+            Svg.svg [ Svg.Attributes.viewBox "0 0 150 25", Svg.Attributes.width "150px" ]
+                [ Svg.rect [ Svg.Attributes.x "0", Svg.Attributes.y "0", Svg.Attributes.width "100%", Svg.Attributes.height "100%", Svg.Attributes.fill "#6a5acd", Svg.Attributes.rx "10", Svg.Attributes.ry "10" ] []
+                , Svg.text_ [ Svg.Attributes.x "75", Svg.Attributes.y "12", Svg.Attributes.fill "#ffd500", Svg.Attributes.fontSize "14", Svg.Attributes.textAnchor "middle", Svg.Attributes.dominantBaseline "middle" ] [ Svg.text (String.fromInt progress ++ "%") ]
                 ]
-            ]
-        , div [ class "field" ]
-            [ label [ class "label" ] [ text "Sets" ]
-            , div [ class "control" ]
-                [ input [ class "input", type_ "text", value exercise.sets, onInput (\newSets -> UpdateModal (InputWorkoutPlan { plan | exercises = List.indexedMap (\i ex -> if i == idx then { ex | sets = newSets } else ex) plan.exercises })) ] []
+        else
+                       Svg.svg [ Svg.Attributes.viewBox "0 0 150 25", Svg.Attributes.width "150px" ]
+                [ Svg.rect [ Svg.Attributes.x "0", Svg.Attributes.y "0", Svg.Attributes.width progressWidth, Svg.Attributes.height "100%", Svg.Attributes.fill "#6a5acd", Svg.Attributes.rx "10", Svg.Attributes.ry "10" ] []
+                , Svg.text_ [ Svg.Attributes.x (String.fromInt (round (toFloat progress * 0.75))) , Svg.Attributes.y "12", Svg.Attributes.fill "#ffd500", Svg.Attributes.fontSize "14", Svg.Attributes.textAnchor "middle", Svg.Attributes.dominantBaseline "middle" ] [ Svg.text (String.fromInt progress ++ "%") ]
                 ]
-            ]
-        , div [ class "field" ]
-            [ label [ class "label" ] [ text "Wiederholungen" ]
-            , div [ class "control" ]
-                [ input [ class "input", type_ "text", value exercise.reps, onInput (\newReps -> UpdateModal (InputWorkoutPlan { plan | exercises = List.indexedMap (\i ex -> if i == idx then { ex | reps = newReps } else ex) plan.exercises })) ] []
-                ]
-            ]
-        ]

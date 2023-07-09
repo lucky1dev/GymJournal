@@ -24,6 +24,8 @@ port saveWorkoutPlan : Json.Encode.Value -> Cmd msg
 
 port receiveWorkoutPlans : (Json.Encode.Value -> msg) -> Sub msg
 
+port deleteWorkoutPlan : String -> Cmd msg
+
 
 type alias ErrorData =
     { code : Maybe String, message : Maybe String, credential : Maybe String }
