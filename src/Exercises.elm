@@ -5,6 +5,7 @@ import Json.Decode as Decode
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Embed.Youtube exposing (..)
 
 type alias Training =
     { name : String
@@ -82,29 +83,24 @@ update msg model =
 exercisesView : Model -> Html Msg
 exercisesView model =
     div []
-        [ h2 [] [ text "Trainingsübungen" ]
-        , div [ class "panel" ]
-            [ p [ class "panel-heading" ] [ text "Filter" ]
-            , div [ class "panel-block" ]
+        [  div [ class "panel"]
+            [ p [ class "panel-heading", style "display" "flex" ] [ div [style "margin-right" "10px"]
                 [ select [ onInput UpdateBelastungFilter ]
-                    [ option [ value ""] [ text "Alle" ]
+                    [ option [ value ""] [ text "Alle Übungsarten" ]
                     , option [ value "Freihantel" ] [ text "Freihantel" ]
                     , option [ value "Körpergewicht" ] [ text "Körpergewicht" ]
                     , option [ value "Maschine" ] [ text "Maschine" ]
-                    ]
-                ]
-            , div [ class "panel-block" ]
-                [ select [ onInput UpdateHauptmuskelgruppeFilter ]
-                    [ option [ value ""] [ text "Alle" ]
+                    ]]
+                 ,div [style "margin-left" "10px"]
+                    [ select [ onInput UpdateHauptmuskelgruppeFilter ]
+                    [ option [ value ""] [ text "Alle Muskelgruppen" ]
                     , option [ value "Beine" ] [ text "Beine" ]
                     , option [ value "Brust" ] [ text "Brust" ]
                     , option [ value "Rücken" ] [ text "Rücken" ]
                     , option [ value "Schultern" ] [ text "Schultern" ]
                     , option [ value "Bauch" ] [ text "Bauch" ]
                     ]
-                ]
-            , p [ class "panel-tabs" ] []
-            ]
+                ]]]
         , div [ class "panel scrollable-panel" ]
             (List.filter (\training -> (model.belastungFilter == "" || training.belastung == model.belastungFilter) && (model.hauptmuskelgruppeFilter == "" || training.hauptmuskelgruppe == model.hauptmuskelgruppeFilter)) model.trainings |> List.map viewTraining)
         , trainingModalView model.selectedTraining
@@ -117,9 +113,9 @@ viewTraining training =
         , onClick (OpenTrainingModal (Just training))
         ]
         [ div [ class "content" ]
-            [ p [ class "title is-4" ] [ text training.name ]
-            , p [ class "subtitle is-6" ] [ text training.hauptmuskelgruppe ]
-            , p [] [ text training.belastung ]
+            [ b [ class "title is-4" ] [ text training.name ]
+            , p [style "margin" "0px"][b [ class "subtitle is-6" ] [ text ("Muskkelgruppe:  " ++ training.hauptmuskelgruppe) ]]
+            , b [class "subtitle is-6"] [ text ("Übungsart:  " ++  training.belastung) ]
             ]
         ]
 
@@ -131,16 +127,35 @@ trainingModalView maybeTraining =
 
         Just training ->
             div [ class "modal is-active" ]
-                [ div [ class "modal-background" ]
+                [ div [ class "modal-background" ,onClick (OpenTrainingModal Nothing)]
                     []
-                , div [ class "modal-content" ]
-                    [ p [] [ text training.name ]
-                    , p [] [ text training.hauptmuskelgruppe ]
-                    , p [] [ text training.belastung ]
-                    , p [] [ text training.erklaerung ]
-                    , a [ href training.youtubeLink ] [ text "Youtube Link" ]
-                    ]
-                , button [ class "modal-close is-large", style "ariaLabel" "close", onClick (OpenTrainingModal Nothing) ] []
-                ]
+                , div 
+                            [ class "modal-card"   ,
+                             style "background-color" "white"
+                            , style "border" "none"
+                            , style "margin" "15px auto"
+                            , style "max-width" "600px"
+                            , style "border-radius" "6px"
+                            , style "box-shadow" "0 3px 7px rgba(0, 0, 0, 0.3)"
+                            ]
+                            [ div [ class "modal-card-head" ]
+                                [ h2 [ class "title is-4 has-text-black" ] [ text training.name ] ]
+                            , div [ class "modal-card-body" ]
+                                [ p [ style "margin-bottom" "20px" ]
+                                    [ span [ class "title is-4 has-text-Black" ] [ text "Hauptmuskelgruppe:     " ]
+                                    , span [ class "title is-4 has-text-black" ] [ text training.hauptmuskelgruppe ]
+                                    ]
+                                , p [ style "margin-bottom" "20px" ]
+                                    [ span [ class "title is-4 has-text-black" ] [ text "Übungsart:     " ]
+                                    , span [ class "title is-4 has-text-black" ] [ text training.belastung ]
+                                    ]
+                                , p [ style "margin-bottom" "20px" ]
+                                    [ span [ class "title is-5 has-text-black" ] [ text "Erklärung:     " ]
+                                    , span [ class "subtitle is-5 has-text-black" ] [ text training.erklaerung ]
+                                    ]
+                                , a [ class "button is-danger", href "https://www.youtube.com/watch?v=50bRdFkkm4I" ] [ text "Youtube Link"]
+                                ]
+                                ]]
+                                
 
 

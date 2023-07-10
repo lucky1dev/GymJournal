@@ -12,7 +12,6 @@ import Exercises exposing (..)
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
 
-
 -- MODEL
 type alias Exercise =
     { name : String
@@ -150,7 +149,7 @@ update msg model =
 
         SelectWorkoutPlan id ->
             
-            ({ model | selectedPlanId = Just id, dropdownOpen = False }, Cmd.none)
+            ({ model | selectedPlanId = Just id, dropdownOpen = False, newPlan = Nothing }, Cmd.none)
 
         WorkoutPlansReceived result ->
              case result of
@@ -301,7 +300,7 @@ planView model =
             Html.text ""
 
         plan :: _ ->
-            div [] [
+            div [  ] [
             div [ Html.Attributes.class "table-container" ]
                 [ table [ Html.Attributes.class "table is-hoverable" ]
                     [ thead []
@@ -309,7 +308,7 @@ planView model =
                             [ th [Html.Attributes.style "color" "green"] [Html.text "Übung" ]
                             , th [Html.Attributes.style "color" "green"] [ Html.text "Sets" ]
                             , th [Html.Attributes.style "color" "green"] [ Html.text "Reps" ] 
-                            , th [Html.Attributes.style "color" "red"] [ Html.text "Load" ] 
+                            , th [Html.Attributes.style "color" "#6a5acd"] [ Html.text "Load" ] 
                             , th [Html.Attributes.style "color" "#6a5acd"] [ Html.text "Progress"]
                             ]
                         ]
@@ -321,38 +320,54 @@ planView model =
                         in
                             tr []
                             [
-                              td [Html.Attributes.style "color" "green", Html.Attributes.class "animate__animated animate__fadeInLeft"] [ Html.text exercise.name]
-                            , td [Html.Attributes.style "color" "green", Html.Attributes.class "animate__animated animate__fadeInLeft"] [ Html.text exercise.sets ]
-                            , td [Html.Attributes.style "color" "green", Html.Attributes.class "animate__animated animate__fadeInLeft"] [ Html.text exercise.reps ]
+                              td [Html.Attributes.style "color" "green"] [ Html.text exercise.name]
+                            , td [Html.Attributes.style "color" "green"] [ Html.text exercise.sets ]
+                            , td [Html.Attributes.style "color" "green"] [ Html.text exercise.reps ]
                             , 
                             case exercise.belastung of
                                 "Körpergewicht" ->
-                                     td [Html.Attributes.style "color" "red", Html.Attributes.class "animate__animated animate__fadeInDown"] [ Html.text "5 reps" ]
+                                                    td 
+                                                                [ Html.Attributes.style "color" "#6a5acd"
+                                                               
+                                                                ] 
+                                                                [ Html.img 
+                                                                    [ Html.Attributes.src "./push-up-svgrepo-com.svg", Html.Attributes.style "margin" "-10px", Html.Attributes.style "width" "30px"
+                                                                    ] 
+                                                                    []
+                                                                ]
+                                _ ->
+                                        if exercise.weight_now > 0 then
+                                            td [Html.Attributes.style "color" "#6a5acd"] [ Html.text (String.fromFloat (exercise.weight_now) ++ "kg" ) ] -- button zum ändern des gewichts hinterlegen (modal) --onclick openModalExercise plan plan.exercise (übergabe von plan und exercise da plan anschließend überschrieben wird) - eingabe feld, speichern, abbrechen if bedingung start weight = empty
+                            
+                                        
+                                        else 
+                                            td  [ ]
+                                                    [ i [ Html.Attributes.class "fa fa-plus" , Html.Attributes.attribute "aria-hidden" "true" ] [] ]
+                            
+                            ,           
+                            case exercise.belastung of
+                                "Körpergewicht" ->
+                                     td [Html.Attributes.style "color" "#6a5acd" , Html.Attributes.classList [ ( "animate__animated animate__zoomIn", True ) ]] [ Html.text "Bodyweight" ]
+
 
                                 _ ->
-                                        td [Html.Attributes.style "color" "red", Html.Attributes.class "animate__animated animate__fadeInDown"] [ Html.text "50 kg" ]
-                            ,  td 
-                                    [ Html.Attributes.style "display" "flex"
-                                    , Html.Attributes.style "justify-content" "center" 
-                                    , Html.Attributes.style "align-items" "center" 
-                                    , Html.Attributes.class "animate__animated animate__fadeInRight"
-                                    ] 
-                                    [progressBar exercise]
+                                    if exercise.start_weight >0 then
+                                    td 
+                                            [ Html.Attributes.style "display" "flex"
+                                            , Html.Attributes.style "justify-content" "center" 
+                                            , Html.Attributes.style "align-items" "center" 
+                                             , Html.Attributes.classList [ ( "animate__animated animate__zoomIn", True ) ]
+                                            ] 
+                                            [progressBar exercise]
+                                    else 
+                                    td [Html.Attributes.style "color" "#6a5acd" , Html.Attributes.classList [ ( "animate__animated animate__zoomIn", True ) ]] [ Html.text "No Progress" ]
+                            
                                  
                             ]) plan.exercises)
                     ]
                 ]
-             , div [] [button [Html.Attributes.class "button is-danger", onClick (DeleteWorkoutPlan plan.id)][Html.text "Trainingsplan löschen"]]]
+             , div [] [button [Html.Attributes.class "button is-danger", onClick (DeleteWorkoutPlan plan.id)][Html.text "Trainingsplan löschen"]]] -- modal -bist du sicher? ja nein openModalDeletePlan plan.id button ja -> DeleteworkoutPlan plan.id ; button nein -> OpenModal = false
 
-{-
-, case exercise.belastung of
-                                "Körpergewicht" ->
-                                     button [class "button is-info"] [text "W A"]
-
-
-                                _ ->
-                                        button [class "button is-info"] [text "G A"]   
--}
 
 inputWorkoutPlanView : Model -> Html Msg
 inputWorkoutPlanView model =
@@ -402,7 +417,7 @@ trainingOptions trainings =
 
 progressPercentage : Exercise -> Float
 progressPercentage exercise =
-   ( ( exercise.weight_now /  exercise.start_weight) - 1 )  * 100
+        ( ( exercise.weight_now /  exercise.start_weight) - 1 )  * 100
 
 
 progressBar : Exercise -> Svg.Svg msg
@@ -410,14 +425,19 @@ progressBar exercise =
     let
         progress = round (progressPercentage exercise)
         progressWidth = String.fromInt ( progress // 1  ) ++ "%"
+
     in
         if progress >= 100 then
             Svg.svg [ Svg.Attributes.viewBox "0 0 150 25", Svg.Attributes.width "150px" ]
                 [ Svg.rect [ Svg.Attributes.x "0", Svg.Attributes.y "0", Svg.Attributes.width "100%", Svg.Attributes.height "100%", Svg.Attributes.fill "#6a5acd", Svg.Attributes.rx "10", Svg.Attributes.ry "10" ] []
                 , Svg.text_ [ Svg.Attributes.x "75", Svg.Attributes.y "12", Svg.Attributes.fill "#ffd500", Svg.Attributes.fontSize "14", Svg.Attributes.textAnchor "middle", Svg.Attributes.dominantBaseline "middle" ] [ Svg.text (String.fromInt progress ++ "%") ]
                 ]
+
+        
+
         else
-                       Svg.svg [ Svg.Attributes.viewBox "0 0 150 25", Svg.Attributes.width "150px" ]
-                [ Svg.rect [ Svg.Attributes.x "0", Svg.Attributes.y "0", Svg.Attributes.width progressWidth, Svg.Attributes.height "100%", Svg.Attributes.fill "#6a5acd", Svg.Attributes.rx "10", Svg.Attributes.ry "10" ] []
-                , Svg.text_ [ Svg.Attributes.x (String.fromInt (round (toFloat progress * 0.75))) , Svg.Attributes.y "12", Svg.Attributes.fill "#ffd500", Svg.Attributes.fontSize "14", Svg.Attributes.textAnchor "middle", Svg.Attributes.dominantBaseline "middle" ] [ Svg.text (String.fromInt progress ++ "%") ]
-                ]
+                        Svg.svg [ Svg.Attributes.viewBox "0 0 150 25", Svg.Attributes.width "150px" ]
+                    [ Svg.rect [ Svg.Attributes.x "0", Svg.Attributes.y "0", Svg.Attributes.width progressWidth, Svg.Attributes.height "100%", Svg.Attributes.fill "#6a5acd", Svg.Attributes.rx "10", Svg.Attributes.ry "10" ] []
+                    , Svg.text_ [ Svg.Attributes.x (String.fromInt (round (toFloat progress * 0.75))) , Svg.Attributes.y "12", Svg.Attributes.fill "#ffd500", Svg.Attributes.fontSize "14", Svg.Attributes.textAnchor "middle", Svg.Attributes.dominantBaseline "middle" ] [ Svg.text (String.fromInt progress ++ "%") ]
+                    ]
+            

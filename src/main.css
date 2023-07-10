@@ -169,23 +169,10 @@ body.welcome {
     opacity: 0;
   }
 } 
-.card-container {
-  display: grid;
-  grid-auto-flow: dense;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  grid-template-rows: minmax(200px, auto);
-  gap: 10px;
-  overflow-y: auto;
-  overflow-x: hidden;
-  height: 100%;
-  width: 100%;
-}
 
-.card {
-  height: min-content;
-}
+
 
 .scrollable-panel {
-  max-height: 75vh; /* oder eine andere Höhe, die für Ihre Anwendung geeignet ist */
+  max-height: 85vh; 
   overflow-y: auto;
 }
