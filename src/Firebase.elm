@@ -109,18 +109,20 @@ logInErrorDecoder =
 
 loginView: Model -> Html Msg
 loginView model =
+
     case model.userData of
                     Maybe.Nothing ->
                         div [style "display" "flex", style "flex-direction" "column", style "justify-content" "center", style "align-items" "center"] [
-                        h1 [class "title"] [ text "GymJournal" ]   
+                        h1 [class "title is-2 has-text-black "] [ text "GymJournal" ]   
                         ,button [ class "button is-dark", style "width" "150px", onClick LogIn] [ text "Login" ]
                         ]
 
                     Just data ->
                         div [style "display" "flex", style "flex-direction" "column", style "justify-content" "center", style "align-items" "center"] [
-                         h1 [class "title"] [ text "(づ｡◕‿‿◕｡)づ "]
-                        , h1 [class "title"] [ text data.email   ]
-                        , h2 [] [ text <| errorPrinter model.error ]]
+                         h1 [class "title"] [ text data.email   ]
+                         , button [ class "button is-dark", style "width" "150px", onClick LogOut] [ text "Logout" ]
+                        , h2 [] [ text <| errorPrinter model.error ]
+                        ]
 
 
-
+                

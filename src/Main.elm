@@ -106,16 +106,30 @@ update msg model =
        
 view : Model -> Browser.Document Msg
 view model =
-    { title = "GymJournal"
-    , body =
-        [ viewBody model
-        ]
-    }
+
+    let
+
+        container =
+            div [ id "container",  style "position" "absolute" ,style "z-index" "-2" ]
+                [ div [ id "container-inside", style "position" "relative" ,style "z-index" "-1" ]
+                    [ div [ id "circle-small" ] []
+                    , div [ id "circle-medium" ] []
+                    , div [ id "circle-large" ] []
+                    , div [ id "circle-xlarge" ] []
+                    , div [ id "circle-xxlarge" ] []
+                    ]
+                ]
+
+             
+    in
+        { title = "GymJournal"
+        , body =
+            [ container, viewBody model ]
+        }
 
 viewBody : Model -> Html Msg
 viewBody model =
-
-                  div [] [ navBar model,
+                  div [style "position" "absolute" ,style "z-index" "5",style "min-height" "100%", style "min-width" "100%" ] [ navBar model,
                         case model.url.fragment of 
                                 Just "exercises" -> div [] [Html.map ExercisesMsg (Exercises.exercisesView model.exercises)]
                                 Just "trainings" -> div [] [Html.map PlanningMsg (Planning.planningView model.planning)]
@@ -127,6 +141,30 @@ viewBody model =
 startView: Model -> Html Msg
 startView model =
 
+     div [] [
+
+          case model.firebase.userData of
+                Maybe.Nothing ->
+                        video [ attribute "autoplay" "true", attribute "muted" "true", attribute "loop" "true", id "myVideo", style "opacity" "0.9" ]
+                                [ source [ src "./sport2.mp4", type_ "video/mp4" ] []
+                                ]
+
+
+                Just data -> 
+                    text ""
+
+
+
+    , div [style "display" "flex"
+        , style "justify-content" "center"
+        , style "align-items" "center"
+        , style "height" "100vh"] [div 
+            [ style "position" "relative"
+            , style "z-index" "1"
+            ]
+            [
+    div [] [Html.map FirebaseMsg (Firebase.loginView model.firebase)]]]]
+    {-
     div [ class "welcome", style "z-index" "1"]
         [ span [ id "splash-overlay", class "splash" ] []
         , span [ id "welcome", class "z-depth-4" ] []
@@ -144,32 +182,26 @@ startView model =
             [ 
 
                     Html.map FirebaseMsg (Firebase.loginView model.firebase)
-            ]]
+            ]] -}
             
-navBar : Model -> Html Msg
+navBar : Model -> Html Msg --animations
 navBar model =
-    case model.firebase.userData of
+  case model.firebase.userData of
         Maybe.Nothing ->
             text ""
 
-        Just data ->
-            nav [ class "navbar is-white is-desktop", Html.Attributes.classList [ ( "animate__animated animate__fadeIn", True ) ], style "animation-delay" "3s", style "z-index" "2"]
-                [ 
-                 div [ class "navbar-menu" ]
-                    [ div [ class "navbar-start" ]
-                        [ a [ class "navbar-item has-text-black is-size-4 has-text-weight-bold", href "#exercises" ] [ text "Exercises" ]
-                        , a [ class "navbar-item has-text-black is-size-4 has-text-weight-bold", href "#trainings" ] [ text "Trainings" ]
-                        , a [ class "navbar-item has-text-black is-size-4 has-text-weight-bold", href "#progression" ] [ text "Progressions" ]
-                        ]
-                    , div [ class "navbar-end" ]
-                        [ div [ class "navbar-item" ]
-                            [ div [ class "buttons" ]
-                                [ button [ class "button is-dark", onClick (Firebase.LogOut |> FirebaseMsg) ] [ strong [] [ text "Logout" ] ]
-                                ]
-                            ]
-                        ]
-                    ]
-                ]
+        Just data -> 
+
+            div [ style "display" "flex", style "flex-direction" "row", style "justify-content" "center", style "align-items" "center",  style "position" "relative"
+                    , style "z-index" "2"] 
+            [ 
+                
+                 div [style "width" "33vw", style "display" "flex", style "justify-content" "center", style "align-items" "center"] [button [class "button is-ghost"] [ a [ class "title is-5 has-text-white", href "#exercises" ] [ text "Exercises" ]]]
+                , div [  style "width" "33vw", style "display" "flex", style "justify-content" "center", style "align-items" "center"][ button [class "button is-ghost"] [ a [ class "title is-5 has-text-white",  href "#trainings" ] [ text "Trainings" ] ] ]
+                , div [  style "width" "33vw", style "display" "flex", style "justify-content" "center", style "align-items" "center"] [ button [class "button is-ghost"] [ a [ class "title is-5 has-text-white", href ""] [text "Account"] ]  ]
+            ]
+
+                
 
 
 subscriptions : Model -> Sub Msg

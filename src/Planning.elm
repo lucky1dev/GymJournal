@@ -60,15 +60,12 @@ type Msg
     = FirebaseMsg Firebase.Msg
     | ExercisesMsg Exercises.Msg
     | DeleteWorkoutPlan Int
-
     | OpenInput 
     | CloseInput
     | UpdateInput WorkoutPlan
     | SaveInput WorkoutPlan
     | AddExercise WorkoutPlan 
     | RemoveExercise WorkoutPlan Int
-
-
     | SelectWorkoutPlan Int
     | ToggleDropdown
     | WorkoutPlansReceived (Result Json.Decode.Error (List WorkoutPlan))
@@ -159,10 +156,6 @@ update msg model =
                 Err error ->    
                     ( { model | trainings = [] }, Cmd.none )
 
-
-
-
-
 workoutListDecoder : Json.Decode.Decoder (List WorkoutPlan)
 workoutListDecoder =
     Json.Decode.list workoutDecoder
@@ -190,8 +183,6 @@ exerciseDecoder =
         |> Json.Decode.Pipeline.required "start_weight" Json.Decode.float
         |> Json.Decode.Pipeline.required "weight_now" Json.Decode.float
 
-
-
 messageEncoderWorkoutplan: WorkoutPlan -> Json.Encode.Value
 messageEncoderWorkoutplan workoutplan =
     Json.Encode.object
@@ -217,8 +208,6 @@ encodeExercise exercise =
         , ( "weight_now", Json.Encode.float exercise.weight_now )
         ]
 
-
-
 planningView : Model -> Html Msg
 planningView model =
     div [Html.Attributes.classList [ ( "animate__animated animate__fadeIn", True ) ], Html.Attributes.style "display" "flex", Html.Attributes.style "align-items" "center", Html.Attributes.style "justify-content" "center", Html.Attributes.style "gap" "20px"] 
@@ -238,10 +227,10 @@ buttonBar model =
                                         "no uid"
 
     in 
-    div [ Html.Attributes.class "columns" ]
-        [ button [ Html.Attributes.class "button is-success", Html.Attributes.style "margin" "20px", onClick OpenInput ]
-            [ span [] [ Html.text "Add Workoutplan" ]  
-            ]
+    div [ Html.Attributes.class "level-item" ]
+        [ button [ Html.Attributes.class "button is-success", Html.Attributes.style "margin" "10px", onClick OpenInput ]
+            [ Html.text "Add Workoutplan" ]  
+            
         , case model.trainings of
              [] ->
                 Html.text ""
@@ -271,10 +260,10 @@ createDropDownMenu model =
         icon = if model.dropdownOpen then "fa fa-angle-up" else "fa fa-angle-down"
     in
     div [ Html.Attributes.class "level-item" ]
-        [ div [ Html.Attributes.class ("dropdown " ++ isActive) ]
+        [ div [ Html.Attributes.class ("dropdown " ++ isActive), Html.Attributes.style "margin" "10px"]
             [ div [ Html.Attributes.class "dropdown-trigger" ]
-                [ button [ Html.Attributes.class "button is-white"
-                         , Html.Attributes.style "width" "200px"
+                [ button [ Html.Attributes.class "button is-success"
+                         , Html.Attributes.style "width" "210px"
                          , Html.Attributes.attribute "aria-haspopup" "true"
                          , Html.Attributes.attribute "aria-controls" "dropdown-menu"
                          , onClick ToggleDropdown
@@ -288,7 +277,6 @@ createDropDownMenu model =
                 [ div [ Html.Attributes.class "dropdown-content" ] (List.concatMap (\plan -> [button [Html.Attributes.class "button is-white dropdown-item", onClick (SelectWorkoutPlan plan.id)] [Html.text (plan.title ++ " : " ++ plan.weekday)]]) model.trainings) ]
             ]
         ]
-
 planView : Model -> Html Msg
 planView model =
     let
@@ -300,29 +288,28 @@ planView model =
             Html.text ""
 
         plan :: _ ->
-            div [  ] [
-            div [ Html.Attributes.class "table-container" ]
-                [ table [ Html.Attributes.class "table is-hoverable" ]
+            div [Html.Attributes.class "rows", Html.Attributes.style  "align-items" "center"] [
+            div [ Html.Attributes.class "table-container level-item" ]
+                [ table [ Html.Attributes.class "table",  Html.Attributes.style "background-color" "transparent" ]
                     [ thead []
                         [ tr []
-                            [ th [Html.Attributes.style "color" "green"] [Html.text "Übung" ]
-                            , th [Html.Attributes.style "color" "green"] [ Html.text "Sets" ]
-                            , th [Html.Attributes.style "color" "green"] [ Html.text "Reps" ] 
-                            , th [Html.Attributes.style "color" "#6a5acd"] [ Html.text "Load" ] 
-                            , th [Html.Attributes.style "color" "#6a5acd"] [ Html.text "Progress"]
+                            [ th [Html.Attributes.class  "title is-5 has-text-white"] [Html.text "Übung" ]
+                            , th [Html.Attributes.class  "title is-5 has-text-white"] [ Html.text "Sets" ]
+                            , th [Html.Attributes.class  "title is-5 has-text-white"] [ Html.text "Reps" ] 
+                            , th [Html.Attributes.class  "title is-5 has-text-white"] [ Html.text "Load" ] 
+                            , th [Html.Attributes.class  "title is-5 has-text-white"] [ Html.text "Progress"]
                             ]
                         ]
                     , tbody []
                         (List.map (\exercise -> 
-
                         let progress = round (progressPercentage exercise)
 
                         in
-                            tr []
+                            tr [Html.Attributes.style "text-align" "center"]
                             [
-                              td [Html.Attributes.style "color" "green"] [ Html.text exercise.name]
-                            , td [Html.Attributes.style "color" "green"] [ Html.text exercise.sets ]
-                            , td [Html.Attributes.style "color" "green"] [ Html.text exercise.reps ]
+                              td [Html.Attributes.class  "title is-5 has-text-white"] [ Html.text exercise.name]
+                            , td [Html.Attributes.class  "title is-5 has-text-white"] [ Html.text exercise.sets ]
+                            , td [Html.Attributes.class  "title is-5 has-text-white"] [ Html.text exercise.reps ]
                             , 
                             case exercise.belastung of
                                 "Körpergewicht" ->
@@ -337,12 +324,12 @@ planView model =
                                                                 ]
                                 _ ->
                                         if exercise.weight_now > 0 then
-                                            td [Html.Attributes.style "color" "#6a5acd"] [ Html.text (String.fromFloat (exercise.weight_now) ++ "kg" ) ] -- button zum ändern des gewichts hinterlegen (modal) --onclick openModalExercise plan plan.exercise (übergabe von plan und exercise da plan anschließend überschrieben wird) - eingabe feld, speichern, abbrechen if bedingung start weight = empty
+                                            td [Html.Attributes.class  "title is-5 has-text-white"] [ Html.text (String.fromFloat (exercise.weight_now) ++ "kg" ) ] -- button zum ändern des gewichts hinterlegen (modal) --onclick openModalExercise plan plan.exercise (übergabe von plan und exercise da plan anschließend überschrieben wird) - eingabe feld, speichern, abbrechen if bedingung start weight = empty
                             
                                         
                                         else 
                                             td  [ ]
-                                                    [ i [ Html.Attributes.class "fa fa-plus" , Html.Attributes.attribute "aria-hidden" "true" ] [] ]
+                                                    [   i [ Html.Attributes.class "fa fa-plus button is-ghost" , Html.Attributes.attribute "aria-hidden" "true" ] [] ]
                             
                             ,           
                             case exercise.belastung of
@@ -366,8 +353,7 @@ planView model =
                             ]) plan.exercises)
                     ]
                 ]
-             , div [] [button [Html.Attributes.class "button is-danger", onClick (DeleteWorkoutPlan plan.id)][Html.text "Trainingsplan löschen"]]] -- modal -bist du sicher? ja nein openModalDeletePlan plan.id button ja -> DeleteworkoutPlan plan.id ; button nein -> OpenModal = false
-
+             , div [Html.Attributes.class "level-item"] [button [Html.Attributes.class "button is-danger", onClick (DeleteWorkoutPlan plan.id)][Html.text "Trainingsplan löschen"]]] -- modal -bist du sicher? ja nein openModalDeletePlan plan.id button ja -> DeleteworkoutPlan plan.id ; button nein -> OpenModal = false
 
 inputWorkoutPlanView : Model -> Html Msg
 inputWorkoutPlanView model =
@@ -376,16 +362,15 @@ inputWorkoutPlanView model =
             Html.text ""
 
         Just workoutPlan ->
-            div []
-                [ input [ placeholder "Title", onInput (\title -> UpdateInput { workoutPlan | title = title }) ] []
-                , input [ placeholder "Weekday", onInput (\weekday -> UpdateInput { workoutPlan | weekday = weekday }) ] []
-                , div [] (List.indexedMap (exerciseInput model workoutPlan) workoutPlan.exercises)
-                , button [ onClick (AddExercise workoutPlan) ] [ Html.text "Add Exercise" ]
-                , button [ onClick (SaveInput workoutPlan) ] [ Html.text "Save Workout Plan" ]
+            div [ ]
+                [ div [Html.Attributes.class "level-item row"]  [
+                    input [ Html.Attributes.class "input", placeholder "Title",onInput (\title -> UpdateInput { workoutPlan | title = title }) , Html.Attributes.style "margin-right" "5px"] []
+                , input [ Html.Attributes.class "input", placeholder "Weekday", onInput (\weekday -> UpdateInput { workoutPlan | weekday = weekday }) , Html.Attributes.style "margin-left" "5px"] []]
+                ,div [] (List.indexedMap (exerciseInput model workoutPlan) workoutPlan.exercises)
+                ,div [Html.Attributes.class "level-item", Html.Attributes.style "margin-top" "10px"] [
+                 button [ Html.Attributes.class "button is-info", onClick (AddExercise workoutPlan), Html.Attributes.style "margin-right" "10px" ] [ Html.text "Übung hinzufügen" ]
+                , button [ Html.Attributes.class "button is-info", onClick (SaveInput workoutPlan), Html.Attributes.style "margin-left" "10px" ] [ Html.text "Trainingsplan sichern" ]]
                 ]
-
-        
-
 
 exerciseInput : Model -> WorkoutPlan -> Int -> Exercise -> Html Msg
 exerciseInput model workoutPlan index exercise =
@@ -403,13 +388,12 @@ exerciseInput model workoutPlan index exercise =
             in
             UpdateInput { workoutPlan | exercises = updatedExercises }
     in
-    div []
-        [ select [ onInput (\name -> updateExercise name exercise.sets exercise.reps) ] (trainingOptions model.exercises.trainings)
-        , input [ placeholder "Sets", onInput (\sets -> updateExercise exercise.name sets exercise.reps) ] []
-        , input [ placeholder "Reps", onInput (\reps -> updateExercise exercise.name exercise.sets reps) ] []
-        , button [ onClick (RemoveExercise workoutPlan index) ] [ Html.text "Übung entfernen" ]
+    div [ Html.Attributes.class "level-item",Html.Attributes.style "margin-top" "5px"]
+        [ div [Html.Attributes.class "select is-info"] [select [Html.Attributes.class "is-focused", onInput (\name -> updateExercise name exercise.sets exercise.reps) ,Html.Attributes.style "margin-right" "5px"] (trainingOptions model.exercises.trainings)]
+        , input [ Html.Attributes.class "input",placeholder "Sets", onInput (\sets -> updateExercise exercise.name sets exercise.reps),Html.Attributes.style "width" "20%" ,Html.Attributes.style "margin-right" "5px" ] []
+        , input [ Html.Attributes.class "input",placeholder "Reps", onInput (\reps -> updateExercise exercise.name exercise.sets reps),Html.Attributes.style "width" "20%",Html.Attributes.style "margin-right" "5px" ] []
+        , button [Html.Attributes.class "button is-danger", onClick (RemoveExercise workoutPlan index) ] [ Html.text "Entfernen" ]
         ]
-
 
 trainingOptions : List Training -> List (Html Msg)
 trainingOptions trainings =

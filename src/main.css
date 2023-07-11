@@ -8,11 +8,10 @@
 [data-elm-hot="true"] {
   height: inherit;
 }
-
+/*
 :root {
-  --bg:   white;
+  --bg: url('');  Ersetzen Sie diesen Pfad durch den tatsächlichen Pfad zu Ihrem Bild 
 }
-
 
 html, body {
   height: 100%;
@@ -20,159 +19,195 @@ html, body {
   margin: 0;
   min-height: 100vh;
   display: grid;
-  background-color: var(--bg);
+  background: var(--bg) no-repeat center center fixed; 
+  background-size: cover;
   color: black;
   font-family: "Inter", "DM Sans", Arial, sans-serif;
   outline: none;
 }
-
-
-
+*/
+html, body {
+  overflow: hidden;}
 /* start */
+
 
 main {
   flex: 1 0 auto;
 }
 
-
-
-/* start welcome animation */
-
-body.welcome {
-  background: white;
-  overflow: hidden;
-  -webkit-font-smoothing: antialiased;
+#container {
+  /* Dein CSS-Code hier */
+  background: #f8f8f8;
+  background: -moz-linear-gradient(-45deg, #9ec3d1 0%, #fafafa 100%);
+  background: -webkit-linear-gradient(-45deg, #00adef 0%,#0076e5 100%);
+  background: linear-gradient(135deg, #00adef 0%,#0076e5 100%);
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00adef', endColorstr='#0076e5',GradientType=1 );
+  position: relative;
+  height: 100%;
+  width: 100%;
+  margin: 0px auto;
+  padding: 0px auto;
+}
+#container-inside {
+  position: relative;
+  min-width: 960px;
+  max-width: 1280px;
+  height: auto;
+  min-height: 100%;
+  margin: 0px auto;
+  padding: 0px auto;
+  overflow: visible;
 }
 
-.welcome .splash {
-  height: 0px;
-  padding: 0px;
-  border: 260em solid black;
-  position: fixed;
-  left: 50%;
-  top: 100%;
-  display: block;
-  box-sizing: initial;
-  overflow: hidden;
-
+#circle-small {
+  -webkit-animation: circle-small-scale 3s ease-in-out infinite alternate;
+  animation: circle-small-scale 3s ease-in-out infinite alternate;
+animation-timing-function: cubic-bezier(.6, 0, .4, 1);
+animation-delay: 0s;
+position: absolute;
+top: 200px;
+left: -150px;
+  background: #fff;
+  width: 300px;
+  height: 300px;
   border-radius: 50%;
-  transform: translate(-50%, -50%);
-  animation: puff 0.5s 1.8s cubic-bezier(0.55, 0.055, 0.675, 0.19) forwards, borderRadius 0.2s 2.3s linear forwards;
+  opacity: 0.4;
 }
 
-.welcome #welcome {
-  background: white ;
-  width: 56px;
-  height: 56px;
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  overflow: hidden;
-  opacity: 0;
-  transform: translate(-50%, -50%);
+#circle-medium {
+  -webkit-animation: circle-small-scale 3s ease-in-out infinite alternate;
+  animation: circle-small-scale 3s ease-in-out infinite alternate;
+animation-timing-function: cubic-bezier(.6, 0, .4, 1);
+animation-delay: 0.3s;
+position: absolute;
+top: 50px;
+left: -300px;
+  background: #fff;
+  width: 600px;
+  height: 600px;
   border-radius: 50%;
-  animation: init 0.5s 0.2s cubic-bezier(0.55, 0.055, 0.675, 0.19) forwards, moveDown 1s 0.8s cubic-bezier(0.6, -0.28, 0.735, 0.045) forwards, moveUp 1s 1.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, materia 0.5s 2.7s cubic-bezier(0.86, 0, 0.07, 1) forwards, hide 2s 2.9s ease forwards;
+  opacity: 0.3;
 }
 
-@keyframes init {
-  0% {
-    width: 0px;
-    height: 0px;
-  }
-  100% {
-    width: 56px;
-    height: 56px;
-    margin-top: 0px;
-    opacity: 1;
-  }
+#circle-large {
+  -webkit-animation: circle-small-scale 3s ease-in-out infinite alternate;
+  animation: circle-small-scale 3s ease-in-out infinite alternate;
+animation-timing-function: cubic-bezier(.6, 0, .4, 1);
+animation-delay: 0.6s;
+position: absolute;
+top: -100px;
+left: -450px;
+  background: #fff;
+  width: 900px;
+  height: 900px;
+  border-radius: 50%;
+  opacity: 0.2;
 }
 
-@keyframes puff {
-  0% {
-    top: 100%;
-    height: 0px;
-    padding: 0px;
-  }
-  100% {
-    top: 50%;
-    height: 100%;
-    padding: 0px 100%;
-  }
+#circle-xlarge {
+  -webkit-animation: circle-small-scale 3s ease-in-out infinite alternate;
+  animation: circle-small-scale 3s ease-in-out infinite alternate;
+animation-timing-function: cubic-bezier(.6, 0, .4, 1);
+animation-delay: 0.9s;
+position: absolute;
+top: -250px;
+left: -600px;
+  background: #fff;
+  width: 1200px;
+  height: 1200px;
+  border-radius: 50%;
+  opacity: 0.1;
 }
 
-@keyframes borderRadius {
-  0% {
-    border-radius: 50%;
-  }
-  100% {
-    border-radius: 0px;
-  }
+#circle-xxlarge {
+  -webkit-animation: circle-small-scale 3s ease-in-out infinite alternate;
+  animation: circle-small-scale 3s ease-in-out infinite alternate;
+animation-timing-function: cubic-bezier(.6, 0, .4, 1);
+animation-delay: 1.2s;
+position: absolute;
+top: -400px;
+left: -750px;
+  background: #fff;
+  width: 1500px;
+  height: 1500px;
+  border-radius: 50%;
+  opacity: 0.05;
 }
 
-@keyframes moveDown {
+@-webkit-keyframes circle-small-scale {
   0% {
-    top: 50%;
-  }
-  50% {
-    top: 40%;
+      -webkit-transform: scale(1.0);
   }
   100% {
-    top: 100%;
-  }
-}
-
-@keyframes moveUp {
-  0% {
-    background: white;
-    top: 100%;
-  }
-  50% {
-    top: 40%;
-  }
-  100% {
-    top: 50%;
-    background: white;
+      -webkit-transform: scale(1.1);
   }
 }
 
-@keyframes materia {
+@keyframes circle-small-scale {
   0% {
-    background: white;
-  }
-  50% {
-    background: white;
-    top: 26px;
+      transform: scale(1.0);
   }
   100% {
-    background: white;
-    width: 100%;
-    height: 64px;
-    border-radius: 0px;
-    top: 26px;
+      transform: scale(1.1);
   }
 }
-
-@keyframes moveIn {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
-}
-
-@keyframes hide {
-  0% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-  }
-} 
-
 
 
 .scrollable-panel {
-  max-height: 85vh; 
+  height: 89vh;
   overflow-y: auto;
 }
+
+#myVideo {
+
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  min-width: 100%;
+  min-height: 100%;
+  width: auto;
+  height: auto;
+  transform: translate(-50%, -50%);
+  object-fit: cover;
+}
+
+.modal-card-head.custom-modal-header {
+  background-color: #0076e5; /* Ändern Sie die Farbe nach Ihren Wünschen */
+}
+
+.modal-card-body.custom-modal-body {
+  background-color: white; /* Wählen Sie Ihre bevorzugte Farbe */
+}
+
+
+.panel {
+  box-shadow: none;
+}
+
+
+.panel-block:not(:last-child), .panel-tabs:not(:last-child) {
+  border: none !important;
+}
+
+.button:hover {
+  animation: headShake; 
+  animation-duration: 2s;
+  text-decoration: none ;
+}
+
+
+.panel-block:not(:last-child):hover {
+  animation: heartBeat; 
+  animation-duration: 2s;
+}
+
+.button.is-ghost.is-hovered, .button.is-ghost:hover {
+  text-decoration: none ;
+}
+
+.input::placeholder, .select select::placeholder, .textarea::placeholder {
+
+  color: rgba(54,54,54,1);
+
+}
+
