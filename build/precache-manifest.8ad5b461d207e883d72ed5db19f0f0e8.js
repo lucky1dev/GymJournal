@@ -4,7 +4,7 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/GymJournal/exercises.JSON"
   },
   {
-    "revision": "53742b03a0382782e6500b2aa2b82c88",
+    "revision": "d190ba0ded3c34f314a898c34a70afd1",
     "url": "/GymJournal/index.html"
   },
   {
@@ -12,12 +12,12 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/GymJournal/sport2.mp4"
   },
   {
-    "revision": "aa50a4b1c39bba92fcb8",
-    "url": "/GymJournal/static/css/main.703532d0.chunk.css"
+    "revision": "ed67b7aea50a79b1b1ba",
+    "url": "/GymJournal/static/css/main.5c5a6c04.chunk.css"
   },
   {
-    "revision": "aa50a4b1c39bba92fcb8",
-    "url": "/GymJournal/static/js/main.aa50a4b1.chunk.js"
+    "revision": "ed67b7aea50a79b1b1ba",
+    "url": "/GymJournal/static/js/main.ed67b7ae.chunk.js"
   },
   {
     "revision": "9e0612c0c3338527e52d",

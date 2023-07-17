@@ -158,9 +158,9 @@ navBar model =
                     , style "z-index" "2"] 
             [ 
                 
-                 div [style "width" "33vw", style "display" "flex", style "justify-content" "center", style "align-items" "center"] [button [class "button is-ghost"] [ a [ class "title is-5 has-text-white", href "#exercises" ] [ text "Übungen" ]]]
-                , div [  style "width" "33vw", style "display" "flex", style "justify-content" "center", style "align-items" "center"][ button [class "button is-ghost"] [ a [ class "title is-5 has-text-white",  href "#trainings" ] [ text "Trainingspläne" ] ] ]
-                , div [  style "width" "33vw", style "display" "flex", style "justify-content" "center", style "align-items" "center"] [ button [class "button is-ghost"] [ a [ class "title is-5 has-text-white", href ""] [text "Account"] ]  ]
+                 div [style "width" "33vw", style "display" "flex", style "justify-content" "center", style "align-items" "center"] [button [class "button is-ghost hbb"] [ a [ class "title is-5 has-text-white", href "#exercises" ] [ text "Übungen" ]]]
+                , div [  style "width" "33vw", style "display" "flex", style "justify-content" "center", style "align-items" "center"][ button [class "button is-ghost hbb"] [ a [ class "title is-5 has-text-white",  href "#trainings" ] [ text "Trainingspläne" ] ] ]
+                , div [  style "width" "33vw", style "display" "flex", style "justify-content" "center", style "align-items" "center"] [ button [class "button is-ghost hbb"] [ a [ class "title is-5 has-text-white", href ""] [text "Account"] ]  ]
             ]
 
                 

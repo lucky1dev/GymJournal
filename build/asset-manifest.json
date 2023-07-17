@@ -1,7 +1,7 @@
 {
-  "main.css": "/GymJournal/static/css/main.703532d0.chunk.css",
-  "main.js": "/GymJournal/static/js/main.aa50a4b1.chunk.js",
-  "main.js.map": "/GymJournal/static/js/main.aa50a4b1.chunk.js.map",
+  "main.css": "/GymJournal/static/css/main.5c5a6c04.chunk.css",
+  "main.js": "/GymJournal/static/js/main.ed67b7ae.chunk.js",
+  "main.js.map": "/GymJournal/static/js/main.ed67b7ae.chunk.js.map",
   "runtime~main.js": "/GymJournal/static/js/runtime~main.9e0612c0.js",
   "runtime~main.js.map": "/GymJournal/static/js/runtime~main.9e0612c0.js.map",
   "vendors~main.js": "/GymJournal/static/js/vendors~main.1161195b.chunk.js",
@@ -9,6 +9,6 @@
   "./service-worker.js": "/GymJournal/./service-worker.js",
   "exercises.JSON": "/GymJournal/exercises.JSON",
   "index.html": "/GymJournal/index.html",
-  "precache-manifest.abdc49d2976c0546e57bbd3bcc07cf2b.js": "/GymJournal/precache-manifest.abdc49d2976c0546e57bbd3bcc07cf2b.js",
+  "precache-manifest.8ad5b461d207e883d72ed5db19f0f0e8.js": "/GymJournal/precache-manifest.8ad5b461d207e883d72ed5db19f0f0e8.js",
   "sport2.mp4": "/GymJournal/sport2.mp4"
 }

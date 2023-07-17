@@ -406,7 +406,7 @@ planView model =
                                 case exercise.belastung of
                                     "Körpergewicht" ->
                                         td
-                                                [ Html.Attributes.class "title is-6 has-text-white weight-now"
+                                                [ Html.Attributes.class "title is-6 has-text-white"
                                                 ]
                                                 [ Html.text ("Body") ]
                                     _ ->
@@ -420,7 +420,7 @@ planView model =
                                         in
                                         if exercise.weight_now > 0 then
                                             td
-                                                [ Html.Attributes.class "title is-6 has-text-white weight-now"
+                                                [ Html.Attributes.class "title is-6 has-text-white hbb2"
                                                 , onClick <| OpenModal <| OpenChangeLoadExercise plan exercise exerciseIndex
                                                 ]
                                                 [ Html.text (String.fromFloat exercise.weight_now ++ " kg") ]
@@ -428,7 +428,7 @@ planView model =
                                             td
                                                 []
                                                 [ i
-                                                    [ Html.Attributes.class "fa fa-plus button is-ghost"
+                                                    [ Html.Attributes.class "fa fa-plus button is-ghost hbb2"
                                                     , Html.Attributes.attribute "aria-hidden" "true"
                                                     , onClick <| OpenModal <| OpenChangeLoadExercise plan exercise exerciseIndex
                                                     ]
@@ -443,12 +443,12 @@ planView model =
                                 _ ->
                                     if exercise.start_weight >0 then
                                     td 
-                                            [ 
+                                            [ Html.Attributes.class "pzoom"
                                               
                                             ] 
                                             [progressBar exercise]
                                     else 
-                                    td [Html.Attributes.class "title is-5 has-text-white" , Html.Attributes.classList [ ( "animate__animated animate__zoomIn", True ) ]] [ Html.text "No Progress" ]
+                                    td [Html.Attributes.class "title is-5 has-text-white pzoom" , Html.Attributes.classList [ ( "animate__animated animate__zoomIn", True ) ]] [ Html.text "No Progress" ]
 
                                  
                             ]) plan.exercises)
@@ -490,7 +490,7 @@ exerciseInput model workoutPlan index exercise =
             UpdateInput { workoutPlan | exercises = updatedExercises }
     in
     div [ Html.Attributes.class "level-item",Html.Attributes.style "margin-top" "5px"]
-        [ div [Html.Attributes.class "select is-info"] [select [Html.Attributes.class "is-focused", onInput (\name -> updateExercise name exercise.sets exercise.reps) ,Html.Attributes.style "margin-right" "5px"] (trainingOptions model.exercises.trainings)]
+        [ div [Html.Attributes.class "select is-info title is-6"] [select [Html.Attributes.class "is-focused", onInput (\name -> updateExercise name exercise.sets exercise.reps) ,Html.Attributes.style "margin-right" "5px", Html.Attributes.style "width" "30vw"]  (trainingOptions model.exercises.trainings)]
         , input [ Html.Attributes.class "input",placeholder "Sets", onInput (\sets -> updateExercise exercise.name sets exercise.reps),Html.Attributes.style "width" "20%" ,Html.Attributes.style "margin-right" "5px" ] []
         , input [ Html.Attributes.class "input",placeholder "Reps", onInput (\reps -> updateExercise exercise.name exercise.sets reps),Html.Attributes.style "width" "20%",Html.Attributes.style "margin-right" "5px" ] []
         , button [Html.Attributes.class "button is-danger is-responsive", onClick (RemoveExercise workoutPlan index) ] [ Html.text " Entfernen" ]
@@ -498,7 +498,7 @@ exerciseInput model workoutPlan index exercise =
 
 trainingOptions : List Training -> List (Html Msg)
 trainingOptions trainings =
-    option [ value "", selected True, disabled True ] [ Html.text "Übung auswählen" ] :: List.map (\training -> option [ value training.name ] [ Html.text training.name ]) trainings
+    option [ value "", selected True, disabled True ] [ Html.text "Übung" ] :: List.map (\training -> option [ value training.name ] [ Html.text training.name ]) trainings
 
 progressPercentage : Exercise -> Float
 progressPercentage exercise =
