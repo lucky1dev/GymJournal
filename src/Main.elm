@@ -5,11 +5,8 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Json.Decode
-import Json.Decode.Pipeline
-import Json.Encode
 import Planning
 import Exercises
-import Progression
 import Url
 import Browser.Navigation as Nav
 import Firebase exposing (..) 
@@ -20,7 +17,6 @@ type alias Model =
     , firebase : Firebase.Model
     , planning : Planning.Model
     , exercises : Exercises.Model
-    , progression : Progression.Model
     }
 
 
@@ -35,7 +31,6 @@ init flags url key =
       , planning = planningModel
       , firebase = Firebase.init
       , exercises = exercisesModel
-      , progression = Progression.init
       }
     , Cmd.batch [ Cmd.map ExercisesMsg exercisesCmd
                 , Cmd.map PlanningMsg planningCmd
@@ -45,7 +40,6 @@ init flags url key =
 
 type Msg
     = PlanningMsg Planning.Msg
-    | ProgressionMsg Progression.Msg
     | FirebaseMsg Firebase.Msg
     | ExercisesMsg Exercises.Msg
     | UrlChanged Url.Url
@@ -55,13 +49,6 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         
-        ProgressionMsg subMsg ->
-            let
-                (updatedProgression, cmd) = Progression.update subMsg model.progression
-            in
-            ( { model | progression = updatedProgression }, Cmd.map ProgressionMsg cmd )
-    
-
         ExercisesMsg subMsg ->
             let
                 (updatedExercises, cmd) = Exercises.update subMsg model.exercises
@@ -83,8 +70,11 @@ update msg model =
                                     ,exercises = model.planning.exercises
                                     ,trainings = model.planning.trainings
                                     ,selectedPlanId = model.planning.selectedPlanId
+                                    ,selectedExerciseIndex = model.planning.selectedExerciseIndex
                                     ,dropdownOpen = model.planning.dropdownOpen
-                                    ,newPlan = model.planning.newPlan }
+                                    ,newPlan = model.planning.newPlan
+                                    ,modal = model.planning.modal
+                                    ,newWeight = model.planning.newWeight }
                }
             , Cmd.map FirebaseMsg cmd )
 
@@ -108,7 +98,6 @@ view : Model -> Browser.Document Msg
 view model =
 
     let
-
         container =
             div [ id "container",  style "position" "absolute" ,style "z-index" "-2" ]
                 [ div [ id "container-inside", style "position" "relative" ,style "z-index" "-1" ]
@@ -118,9 +107,7 @@ view model =
                     , div [ id "circle-xlarge" ] []
                     , div [ id "circle-xxlarge" ] []
                     ]
-                ]
-
-             
+                ]            
     in
         { title = "GymJournal"
         , body =
@@ -133,10 +120,8 @@ viewBody model =
                         case model.url.fragment of 
                                 Just "exercises" -> div [] [Html.map ExercisesMsg (Exercises.exercisesView model.exercises)]
                                 Just "trainings" -> div [] [Html.map PlanningMsg (Planning.planningView model.planning)]
-                                Just "progression" ->  div [] [Html.map ProgressionMsg (Progression.view model.progression)]
                                 _ -> startView model
                     ]
-
 
 startView: Model -> Html Msg
 startView model =
@@ -148,12 +133,8 @@ startView model =
                         video [ attribute "autoplay" "true", attribute "muted" "true", attribute "loop" "true", id "myVideo", style "opacity" "0.9" ]
                                 [ source [ src "./sport2.mp4", type_ "video/mp4" ] []
                                 ]
-
-
                 Just data -> 
                     text ""
-
-
 
     , div [style "display" "flex"
         , style "justify-content" "center"
@@ -164,27 +145,9 @@ startView model =
             ]
             [
     div [] [Html.map FirebaseMsg (Firebase.loginView model.firebase)]]]]
-    {-
-    div [ class "welcome", style "z-index" "1"]
-        [ span [ id "splash-overlay", class "splash" ] []
-        , span [ id "welcome", class "z-depth-4" ] []
-        ,  div
-            [ classList
-                [ ( "animate__animated animate__fadeIn", True )
-                ]
-            , style "animation-delay" "3s"
-            , style "display" "flex"
-            , style "flex-direction" "column"  
-            , style "align-items" "center"
-            , style "justify-content" "center"
-            , style "padding-top" "30vh"
-            ]
-            [ 
 
-                    Html.map FirebaseMsg (Firebase.loginView model.firebase)
-            ]] -}
             
-navBar : Model -> Html Msg --animations
+navBar : Model -> Html Msg
 navBar model =
   case model.firebase.userData of
         Maybe.Nothing ->
@@ -196,8 +159,8 @@ navBar model =
                     , style "z-index" "2"] 
             [ 
                 
-                 div [style "width" "33vw", style "display" "flex", style "justify-content" "center", style "align-items" "center"] [button [class "button is-ghost"] [ a [ class "title is-5 has-text-white", href "#exercises" ] [ text "Exercises" ]]]
-                , div [  style "width" "33vw", style "display" "flex", style "justify-content" "center", style "align-items" "center"][ button [class "button is-ghost"] [ a [ class "title is-5 has-text-white",  href "#trainings" ] [ text "Trainings" ] ] ]
+                 div [style "width" "33vw", style "display" "flex", style "justify-content" "center", style "align-items" "center"] [button [class "button is-ghost"] [ a [ class "title is-5 has-text-white", href "#exercises" ] [ text "Übungen" ]]]
+                , div [  style "width" "33vw", style "display" "flex", style "justify-content" "center", style "align-items" "center"][ button [class "button is-ghost"] [ a [ class "title is-5 has-text-white",  href "#trainings" ] [ text "Trainingspläne" ] ] ]
                 , div [  style "width" "33vw", style "display" "flex", style "justify-content" "center", style "align-items" "center"] [ button [class "button is-ghost"] [ a [ class "title is-5 has-text-white", href ""] [text "Account"] ]  ]
             ]
 

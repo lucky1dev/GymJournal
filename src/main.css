@@ -154,7 +154,7 @@ left: -750px;
 
 
 .scrollable-panel {
-  height: 89vh;
+  height: 80vh;
   overflow-y: auto;
 }
 
@@ -211,3 +211,13 @@ left: -750px;
 
 }
 
+.select:hover {
+  animation: pulse; 
+  animation-duration: 2s;
+}
+
+/* In einer externen CSS-Datei */
+.weight-now:hover {
+  animation: heartBeat; 
+  animation-duration: 2s;
+}

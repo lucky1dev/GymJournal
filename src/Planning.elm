@@ -31,6 +31,9 @@ type alias WorkoutPlan =
     , exercises : List Exercise
     }
 
+type ModalState 
+    = DelPlan Int
+    | ChangeLoad WorkoutPlan Exercise
 
 
 type alias Model =
@@ -38,8 +41,16 @@ type alias Model =
     , exercises : Exercises.Model
     , trainings : List WorkoutPlan
     , selectedPlanId : Maybe Int
+    , selectedExerciseIndex : Maybe Int
     , dropdownOpen : Bool
-    , newPlan : Maybe WorkoutPlan}
+    , newPlan : Maybe WorkoutPlan
+    , modal : Maybe ModalState
+    , newWeight : Maybe Float
+    }
+
+type ModalMsg
+    = OpenDeletePlan Int 
+    | OpenChangeLoadExercise WorkoutPlan Exercise Int
 
 init : ( Model, Cmd Msg )
 init =
@@ -50,10 +61,14 @@ init =
        , exercises = exercisesModel
        , trainings = []
        , selectedPlanId = Nothing
+       , selectedExerciseIndex = Nothing
        , dropdownOpen = False
        , newPlan = Nothing
+       , modal = Nothing
+       , newWeight = Nothing
        }
     , Cmd.map ExercisesMsg exercisesCmd)
+
 
 
 type Msg
@@ -69,6 +84,10 @@ type Msg
     | SelectWorkoutPlan Int
     | ToggleDropdown
     | WorkoutPlansReceived (Result Json.Decode.Error (List WorkoutPlan))
+    | OpenModal ModalMsg 
+    | CloseModal
+    | UpdateExerciseWeight 
+    | UpdateNewWeightString String
 
 
 -- UPDATE
@@ -92,7 +111,7 @@ update msg model =
         DeleteWorkoutPlan id ->
             let idString = String.fromInt id
             in
-            ( model, Firebase.deleteWorkoutPlan idString )
+            ( {model |modal = Nothing} , Firebase.deleteWorkoutPlan idString )
 
         OpenInput  ->
             let
@@ -156,6 +175,78 @@ update msg model =
                 Err error ->    
                     ( { model | trainings = [] }, Cmd.none )
 
+        OpenModal modalMsg ->
+            case modalMsg of
+                OpenDeletePlan id ->
+                    ( { model | modal = Just (DelPlan id) }, Cmd.none )
+
+                OpenChangeLoadExercise plan exercise int -> 
+                    ( { model | modal = Just (ChangeLoad plan exercise), selectedExerciseIndex = Just int }, Cmd.none )
+
+        
+        CloseModal ->
+            ( { model | modal = Nothing }, Cmd.none )
+
+        UpdateExerciseWeight ->
+            case (model.selectedPlanId, model.selectedExerciseIndex, model.newWeight) of
+                (Just planId, Just exerciseIndex, Just newWeight) ->
+                    let
+                        maybePlanToUpdate =
+                            List.filter (\plan -> plan.id == planId) model.trainings
+                                |> List.head
+
+                        updatedPlan =
+                            case maybePlanToUpdate of
+                                Just plan ->
+                                    let
+                                        updatedExercises =
+                                            List.indexedMap
+                                                (\idx exercise ->
+                                                    if idx == exerciseIndex then
+                                                        let
+                                                            updatedStartWeight = 
+                                                                if exercise.start_weight == 0 then
+                                                                    newWeight
+                                                                else
+                                                                    exercise.start_weight
+                                                        in
+                                                        { exercise | start_weight = updatedStartWeight, weight_now = newWeight }
+                                                    else
+                                                        exercise
+                                                )
+                                                plan.exercises
+                                    in
+                                    Just { plan | exercises = updatedExercises }
+
+                                Nothing ->
+                                    Nothing
+
+                        updatedFirebase =
+                            case updatedPlan of
+                                Just plan ->
+                                    Firebase.saveWorkoutPlan <| messageEncoderWorkoutplan plan
+
+                                Nothing ->
+                                    Cmd.none
+                    in
+                    ( { model | trainings = List.map (\plan -> if plan.id == planId then Maybe.withDefault plan updatedPlan else plan) model.trainings, modal = Nothing, newWeight = Nothing }
+                    , Cmd.map FirebaseMsg updatedFirebase
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
+
+
+
+        UpdateNewWeightString newWeightString ->
+            let
+                newWeight = String.toFloat newWeightString
+            in
+            ({ model | newWeight = newWeight }, Cmd.none)
+
+
+
+
 workoutListDecoder : Json.Decode.Decoder (List WorkoutPlan)
 workoutListDecoder =
     Json.Decode.list workoutDecoder
@@ -214,6 +305,7 @@ planningView model =
         [div [ Html.Attributes.class "rows" ][ buttonBar model
         , planView model
         , inputWorkoutPlanView model
+        , modalView model
         ]]
 
 buttonBar : Model -> Html Msg
@@ -228,8 +320,8 @@ buttonBar model =
 
     in 
     div [ Html.Attributes.class "level-item" ]
-        [ button [ Html.Attributes.class "button is-success", Html.Attributes.style "margin" "10px", onClick OpenInput ]
-            [ Html.text "Add Workoutplan" ]  
+        [ button [ Html.Attributes.class "button is-info", Html.Attributes.style "margin" "10px", onClick OpenInput ]
+            [ Html.text "Trainingsplan erstellen" ]  
             
         , case model.trainings of
              [] ->
@@ -262,7 +354,7 @@ createDropDownMenu model =
     div [ Html.Attributes.class "level-item" ]
         [ div [ Html.Attributes.class ("dropdown " ++ isActive), Html.Attributes.style "margin" "10px"]
             [ div [ Html.Attributes.class "dropdown-trigger" ]
-                [ button [ Html.Attributes.class "button is-success"
+                [ button [ Html.Attributes.class "button is-info "
                          , Html.Attributes.style "width" "210px"
                          , Html.Attributes.attribute "aria-haspopup" "true"
                          , Html.Attributes.attribute "aria-controls" "dropdown-menu"
@@ -293,11 +385,11 @@ planView model =
                 [ table [ Html.Attributes.class "table",  Html.Attributes.style "background-color" "transparent" ]
                     [ thead []
                         [ tr []
-                            [ th [Html.Attributes.class  "title is-5 has-text-white"] [Html.text "Übung" ]
-                            , th [Html.Attributes.class  "title is-5 has-text-white"] [ Html.text "Sets" ]
-                            , th [Html.Attributes.class  "title is-5 has-text-white"] [ Html.text "Reps" ] 
-                            , th [Html.Attributes.class  "title is-5 has-text-white"] [ Html.text "Load" ] 
-                            , th [Html.Attributes.class  "title is-5 has-text-white"] [ Html.text "Progress"]
+                            [ th [Html.Attributes.class  "title is-5 has-text-white"] [Html.text "Trainingsübung" ]
+                            , th [Html.Attributes.class  "title is-5 has-text-white"] [ Html.text "Sätze" ]
+                            , th [Html.Attributes.class  "title is-5 has-text-white"] [ Html.text "Wdh" ] 
+                            , th [Html.Attributes.class  "title is-5 has-text-white"] [ Html.text "Gewicht" ] 
+                            , th [Html.Attributes.class  "title is-5 has-text-white"] [ Html.text "Fortschritt"]
                             ]
                         ]
                     , tbody []
@@ -311,49 +403,63 @@ planView model =
                             , td [Html.Attributes.class  "title is-5 has-text-white"] [ Html.text exercise.sets ]
                             , td [Html.Attributes.class  "title is-5 has-text-white"] [ Html.text exercise.reps ]
                             , 
-                            case exercise.belastung of
-                                "Körpergewicht" ->
-                                                    td 
-                                                                [ Html.Attributes.style "color" "#6a5acd"
-                                                               
-                                                                ] 
-                                                                [ Html.img 
-                                                                    [ Html.Attributes.src "./push-up-svgrepo-com.svg", Html.Attributes.style "margin" "-10px", Html.Attributes.style "width" "30px"
-                                                                    ] 
-                                                                    []
-                                                                ]
-                                _ ->
+                                case exercise.belastung of
+                                    "Körpergewicht" ->
+                                        td
+                                            [ Html.Attributes.style "color" "#6a5acd" ]
+                                            [ Html.img
+                                                [ Html.Attributes.src "./push-up-svgrepo-com.svg"
+                                                , Html.Attributes.style "margin" "-10px"
+                                                , Html.Attributes.style "width" "30px"
+                                                ]
+                                                []
+                                            ]
+                                    _ ->
+                                        let
+                                            exerciseIndex =
+                                                List.indexedMap (\idx ex -> (idx, ex)) plan.exercises
+                                                |> List.filter (\(_, ex) -> ex == exercise)
+                                                |> List.head
+                                                |> Maybe.map Tuple.first
+                                                |> Maybe.withDefault (-1)
+                                        in
                                         if exercise.weight_now > 0 then
-                                            td [Html.Attributes.class  "title is-5 has-text-white"] [ Html.text (String.fromFloat (exercise.weight_now) ++ "kg" ) ] -- button zum ändern des gewichts hinterlegen (modal) --onclick openModalExercise plan plan.exercise (übergabe von plan und exercise da plan anschließend überschrieben wird) - eingabe feld, speichern, abbrechen if bedingung start weight = empty
-                            
-                                        
-                                        else 
-                                            td  [ ]
-                                                    [   i [ Html.Attributes.class "fa fa-plus button is-ghost" , Html.Attributes.attribute "aria-hidden" "true" ] [] ]
-                            
-                            ,           
+                                            td
+                                                [ Html.Attributes.class "title is-5 has-text-white weight-now"
+                                                , onClick <| OpenModal <| OpenChangeLoadExercise plan exercise exerciseIndex
+                                                ]
+                                                [ Html.text (String.fromFloat exercise.weight_now ++ " kg") ]
+                                        else
+                                            td
+                                                []
+                                                [ i
+                                                    [ Html.Attributes.class "fa fa-plus button is-ghost"
+                                                    , Html.Attributes.attribute "aria-hidden" "true"
+                                                    , onClick <| OpenModal <| OpenChangeLoadExercise plan exercise exerciseIndex
+                                                    ]
+                                                    []
+                                                ]
+
+                            ,       
                             case exercise.belastung of
                                 "Körpergewicht" ->
-                                     td [Html.Attributes.style "color" "#6a5acd" , Html.Attributes.classList [ ( "animate__animated animate__zoomIn", True ) ]] [ Html.text "Bodyweight" ]
-
+                                     td [][ Html.text "" ]
 
                                 _ ->
                                     if exercise.start_weight >0 then
                                     td 
-                                            [ Html.Attributes.style "display" "flex"
-                                            , Html.Attributes.style "justify-content" "center" 
-                                            , Html.Attributes.style "align-items" "center" 
-                                             , Html.Attributes.classList [ ( "animate__animated animate__zoomIn", True ) ]
+                                            [ 
+                                              
                                             ] 
                                             [progressBar exercise]
                                     else 
-                                    td [Html.Attributes.style "color" "#6a5acd" , Html.Attributes.classList [ ( "animate__animated animate__zoomIn", True ) ]] [ Html.text "No Progress" ]
-                            
+                                    td [Html.Attributes.class "title is-5 has-text-white" , Html.Attributes.classList [ ( "animate__animated animate__zoomIn", True ) ]] [ Html.text "No Progress" ]
+
                                  
                             ]) plan.exercises)
                     ]
                 ]
-             , div [Html.Attributes.class "level-item"] [button [Html.Attributes.class "button is-danger", onClick (DeleteWorkoutPlan plan.id)][Html.text "Trainingsplan löschen"]]] -- modal -bist du sicher? ja nein openModalDeletePlan plan.id button ja -> DeleteworkoutPlan plan.id ; button nein -> OpenModal = false
+             , div [Html.Attributes.class "level-item"] [button [Html.Attributes.class "button is-danger", onClick <| OpenModal <| OpenDeletePlan plan.id][Html.text "Trainingsplan löschen"]]] -- modal -bist du sicher? ja nein openModalDeletePlan plan.id button ja -> DeleteworkoutPlan plan.id ; button nein -> OpenModal = false
 
 inputWorkoutPlanView : Model -> Html Msg
 inputWorkoutPlanView model =
@@ -364,12 +470,12 @@ inputWorkoutPlanView model =
         Just workoutPlan ->
             div [ ]
                 [ div [Html.Attributes.class "level-item row"]  [
-                    input [ Html.Attributes.class "input", placeholder "Title",onInput (\title -> UpdateInput { workoutPlan | title = title }) , Html.Attributes.style "margin-right" "5px"] []
-                , input [ Html.Attributes.class "input", placeholder "Weekday", onInput (\weekday -> UpdateInput { workoutPlan | weekday = weekday }) , Html.Attributes.style "margin-left" "5px"] []]
+                    input [ Html.Attributes.class "input", placeholder "Name",onInput (\title -> UpdateInput { workoutPlan | title = title }) , Html.Attributes.style "margin-right" "5px"] []
+                , input [ Html.Attributes.class "input", placeholder "Wochentag", onInput (\weekday -> UpdateInput { workoutPlan | weekday = weekday }) , Html.Attributes.style "margin-left" "5px"] []]
                 ,div [] (List.indexedMap (exerciseInput model workoutPlan) workoutPlan.exercises)
                 ,div [Html.Attributes.class "level-item", Html.Attributes.style "margin-top" "10px"] [
                  button [ Html.Attributes.class "button is-info", onClick (AddExercise workoutPlan), Html.Attributes.style "margin-right" "10px" ] [ Html.text "Übung hinzufügen" ]
-                , button [ Html.Attributes.class "button is-info", onClick (SaveInput workoutPlan), Html.Attributes.style "margin-left" "10px" ] [ Html.text "Trainingsplan sichern" ]]
+                , button [ Html.Attributes.class "button is-success", onClick (SaveInput workoutPlan), Html.Attributes.style "margin-left" "10px" ] [ Html.text "Trainingsplan sichern" ]]
                 ]
 
 exerciseInput : Model -> WorkoutPlan -> Int -> Exercise -> Html Msg
@@ -392,7 +498,7 @@ exerciseInput model workoutPlan index exercise =
         [ div [Html.Attributes.class "select is-info"] [select [Html.Attributes.class "is-focused", onInput (\name -> updateExercise name exercise.sets exercise.reps) ,Html.Attributes.style "margin-right" "5px"] (trainingOptions model.exercises.trainings)]
         , input [ Html.Attributes.class "input",placeholder "Sets", onInput (\sets -> updateExercise exercise.name sets exercise.reps),Html.Attributes.style "width" "20%" ,Html.Attributes.style "margin-right" "5px" ] []
         , input [ Html.Attributes.class "input",placeholder "Reps", onInput (\reps -> updateExercise exercise.name exercise.sets reps),Html.Attributes.style "width" "20%",Html.Attributes.style "margin-right" "5px" ] []
-        , button [Html.Attributes.class "button is-danger", onClick (RemoveExercise workoutPlan index) ] [ Html.text "Entfernen" ]
+        , button [Html.Attributes.class "button is-danger", onClick (RemoveExercise workoutPlan index) ] [ Html.text " Entfernen" ]
         ]
 
 trainingOptions : List Training -> List (Html Msg)
@@ -408,20 +514,164 @@ progressBar : Exercise -> Svg.Svg msg
 progressBar exercise =
     let
         progress = round (progressPercentage exercise)
-        progressWidth = String.fromInt ( progress // 1  ) ++ "%"
+        progressWidth = String.fromInt ( progress) ++ "%"
 
     in
-        if progress >= 100 then
-            Svg.svg [ Svg.Attributes.viewBox "0 0 150 25", Svg.Attributes.width "150px" ]
-                [ Svg.rect [ Svg.Attributes.x "0", Svg.Attributes.y "0", Svg.Attributes.width "100%", Svg.Attributes.height "100%", Svg.Attributes.fill "#6a5acd", Svg.Attributes.rx "10", Svg.Attributes.ry "10" ] []
-                , Svg.text_ [ Svg.Attributes.x "75", Svg.Attributes.y "12", Svg.Attributes.fill "#ffd500", Svg.Attributes.fontSize "14", Svg.Attributes.textAnchor "middle", Svg.Attributes.dominantBaseline "middle" ] [ Svg.text (String.fromInt progress ++ "%") ]
-                ]
-
-        
-
-        else
-                        Svg.svg [ Svg.Attributes.viewBox "0 0 150 25", Svg.Attributes.width "150px" ]
-                    [ Svg.rect [ Svg.Attributes.x "0", Svg.Attributes.y "0", Svg.Attributes.width progressWidth, Svg.Attributes.height "100%", Svg.Attributes.fill "#6a5acd", Svg.Attributes.rx "10", Svg.Attributes.ry "10" ] []
-                    , Svg.text_ [ Svg.Attributes.x (String.fromInt (round (toFloat progress * 0.75))) , Svg.Attributes.y "12", Svg.Attributes.fill "#ffd500", Svg.Attributes.fontSize "14", Svg.Attributes.textAnchor "middle", Svg.Attributes.dominantBaseline "middle" ] [ Svg.text (String.fromInt progress ++ "%") ]
-                    ]
+    Svg.svg 
+        [ Svg.Attributes.viewBox "0 0 120 10"
+        , Svg.Attributes.width "150px"
+        , Svg.Attributes.class "animate__animated animate__zoomIn"
+        ] 
+        [ 
             
+        Svg.rect 
+            [ Svg.Attributes.x "0"
+            , Svg.Attributes.y "0"
+            , Svg.Attributes.width 
+                (if progress >= 100 then 
+                    "75" 
+                else 
+                    String.fromFloat (toFloat progress * 0.75)
+                )
+            , Svg.Attributes.height "100%"
+            , Svg.Attributes.fill
+                (if progress >= 100 then "#006400"
+                else if progress >= 50 then "#48c78e"
+                else "#fad02c"
+                )
+            , Svg.Attributes.rx "3"
+            ] 
+            []
+           , Svg.text_ 
+            [ Svg.Attributes.x "100"
+            , Svg.Attributes.y "6"
+            , Svg.Attributes.fill "white"
+            , Svg.Attributes.fontSize "12"
+            , Svg.Attributes.textAnchor "middle"
+            , Svg.Attributes.dominantBaseline "middle" 
+            , Svg.Attributes.fontWeight "bold"
+            ] 
+            [ Svg.text progressWidth ]
+        
+        ]
+
+
+
+
+
+modalView : Model -> Html Msg
+modalView model =
+    case model.modal of
+        Nothing ->
+            Html.text ""
+
+
+
+        Just modalState ->
+            div []
+                [case modalState of
+                    DelPlan int ->
+                         div [ Html.Attributes.class "modal is-active"]
+                            [ div [ Html.Attributes.class "modal-background" ,onClick (CloseModal)]
+                                []
+                            , div 
+                                        [ Html.Attributes.class "modal-card"   
+                                        , Html.Attributes.style "border" "none"
+                                        , Html.Attributes.style "margin" "15px auto"
+                                        , Html.Attributes.style "max-width" "350px"
+                                        , Html.Attributes.style "border-radius" "6px"
+                                        , Html.Attributes.style "box-shadow" "0 3px 7px rgba(0, 0, 0, 0.3)"
+                                        , Html.Attributes.classList [ ( "animate__animated animate__zoomIn", True )  ] 
+                                        ]
+                                        [ div [ Html.Attributes.class "modal-card-head custom-modal-header is-flex is-justify-content-space-between" ]
+                                            [ p [] [ span [ Html.Attributes.class "title is-4 has-text-black" ] [ Html.text "Löschen" ] ] ] 
+
+                                        , div [ Html.Attributes.class "modal-card-body custom-modal-body" ]
+                                            [ p [ Html.Attributes.style "margin-bottom" "20px" ]
+                                                [ span [ Html.Attributes.class "title is-5 has-text-black" ] [ Html.text "Diesen Trainingsplan entfernen" ]
+                                                ]
+                                            , button [ Html.Attributes.class "button is-danger", Html.Attributes.style "margin" "10px", Html.Attributes.style "text-align" "center", onClick (DeleteWorkoutPlan int) ] [ Html.text "Ja" ]
+                                            , button [ Html.Attributes.class "button is-success", Html.Attributes.style "margin" "10px", Html.Attributes.style "text-align" "center", onClick CloseModal ] [ Html.text "Nein" ]
+                                            ]
+
+                                            ]]
+
+
+                    ChangeLoad workoutplan exercise ->
+                         div [ Html.Attributes.class "modal is-active"]
+                            [ div [ Html.Attributes.class "modal-background" ,onClick (CloseModal)]
+                                []
+                            , div 
+                                        [ Html.Attributes.class "modal-card"   
+                                        , Html.Attributes.style "border" "none"
+                                        , Html.Attributes.style "margin" "15px auto"
+                                        , Html.Attributes.style "max-width" "350px"
+                                        , Html.Attributes.style "border-radius" "6px"
+                                        , Html.Attributes.style "box-shadow" "0 3px 7px rgba(0, 0, 0, 0.3)"
+                                        , Html.Attributes.classList [ ( "animate__animated animate__zoomIn", True )  ] 
+                                        ]
+                                        [ div [ Html.Attributes.class "modal-card-head custom-modal-header is-flex is-justify-content-space-between" ]
+                                            [ p [] [ span [ Html.Attributes.class "title is-4 has-text-black" ] [ Html.text "Gewicht aktualisieren" ] ] ] 
+
+                                        , div [ Html.Attributes.class "modal-card-body custom-modal-body" ]
+                                            [ input [ Html.Attributes.class "input", placeholder "Arbeitsgewicht in kg", onInput (UpdateNewWeightString) , Html.Attributes.style "margin-bottom" "10px" ] []
+                                            , button [ Html.Attributes.class "button is-success", Html.Attributes.style "margin" "10px", Html.Attributes.style "text-align" "center", onClick (UpdateExerciseWeight) ] [ Html.text "Speichern" ]
+                                            , button [ Html.Attributes.class "button is-danger", Html.Attributes.style "margin" "10px", Html.Attributes.style "text-align" "center", onClick CloseModal ] [ Html.text "Abbrechen" ]
+                                            ]
+
+                                            ]]
+
+
+                    ]
+
+
+{- Zentrieren der Buttons im Modal:
+.custom-modal-body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: row; /* Buttons nebeneinander */
+    gap: 10px; /* Abstand zwischen den Buttons */
+}
+
+
+
+-}
+
+
+{-
+
+        changeLoad ->
+            div [ class "modal is-active"]
+                [ div [ class "modal-background" ,onClick (OpenTrainingModal Nothing)]
+                    []
+                , div 
+                            [ class "modal-card"   
+                            , style "border" "none"
+                            , style "margin" "15px auto"
+                            , style "max-width" "600px"
+                            , style "border-radius" "6px"
+                            , style "box-shadow" "0 3px 7px rgba(0, 0, 0, 0.3)"
+                            , Html.Attributes.classList [ ( "animate__animated animate__zoomIn", True )  ] 
+                            ]
+                            [ div [ class "modal-card-head custom-modal-header is-flex is-justify-content-space-between" ]
+                                [ p [] [ span [ class "title is-4 has-text-black" ] [ text training.name ] ]
+                                , a [ class "button is-danger" ,href "https://www.youtube.com/watch?v=50bRdFkkm4I" ] [ text "Youtube Link"] ] 
+
+                            , div [ class "modal-card-body custom-modal-body" ]
+                                [ p [ style "margin-bottom" "20px" ]
+                                    [ span [ class "title is-5 has-text-black" ] [ text "Hauptmuskelgruppe:     " ]
+                                    , span [ class "title is-5 has-text-black" ] [ text training.hauptmuskelgruppe ]
+                                    ]
+                                , p [ style "margin-bottom" "20px" ]
+                                    [ span [ class "title is-5 has-text-black" ] [ text "Übungsart:     " ]
+                                    , span [ class "title is-5 has-text-black" ] [ text training.belastung ]
+                                    ]
+                                , p [ style "margin-bottom" "20px" ]
+                                    [ span [ class "title is-6 has-text-black" ] [ text "Ausführung:     " ]
+                                    , span [ class "subtitle is-6 has-black" ] [ text training.erklaerung ]
+                                    ]
+                                ]
+                                ]]
+
+-}

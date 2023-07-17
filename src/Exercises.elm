@@ -5,14 +5,13 @@ import Json.Decode as Decode
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
-import Embed.Youtube exposing (..)
+import List
 
 type alias Training =
     { name : String
     , hauptmuskelgruppe : String
     , belastung : String
     , erklaerung : String
-    , youtubeLink : String
     }
 
 type HttpState
@@ -36,12 +35,11 @@ init =
 
 trainingDecoder : Decode.Decoder Training
 trainingDecoder =
-    Decode.map5 Training
+    Decode.map4 Training
         (Decode.field "Übungsname" Decode.string)
         (Decode.field "Hauptmuskelgruppe" Decode.string)
         (Decode.field "Belastung" Decode.string)
         (Decode.field "Erklärung" Decode.string)
-        (Decode.field "YoutubeLink" Decode.string)
 
 
 getTrainings : Cmd Msg
@@ -65,10 +63,12 @@ update msg model =
         GotTrainings result ->
             case result of
                 Ok trainings ->
-                    ( { model | trainings = trainings, state = Success }, Cmd.none )
+                    let sortedTrainings = List.sortBy .name trainings
+                    in ( { model | trainings = sortedTrainings, state = Success }, Cmd.none )
 
                 Err _ ->
                     ( { model | state = Failure "Fehler beim Laden der Trainings" }, Cmd.none )
+
 
         UpdateBelastungFilter newFilter ->
             ( { model | belastungFilter = newFilter }, Cmd.none )
@@ -86,35 +86,18 @@ exercisesView model =
         [  div [         style "display" "flex", style "flex-direction" "row", style "justify-content" "center", style "align-items" "center",  style "position" "relative"
                     , style "z-index" "2"] 
             [ div [ class "panel-heading", style "display" "flex", style "background" "transparent", Html.Attributes.classList [ ( "animate__animated animate__fadeInDown", True ) ]
-            ] [ div [class "select", style "margin-right" "10px"]
+            ] [ div [class "select is-info is-rounded is-small", style "margin-right" "10px"]
                 [ select [ onInput UpdateBelastungFilter
-                        , style "background-color" "transparent"
-                        , style "box-shadow" "none"
-                        , style "border" "none"
-                        , style "outline" "none"
-                        , style "appearance" "none"
-                        , style "-moz-appearance" "none"
-                        , style "-webkit-appearance" "none"
-                        , style "font-weight" "bold"
-                        , style "color" "white"
+
                         ]
                     [ option [ value ""] [ text "Alle Übungsarten" ]
                     , option [ value "Freihantel" ] [ text "Freihantel" ]
                     , option [ value "Körpergewicht" ] [ text "Körpergewicht" ]
                     , option [ value "Maschine" ] [ text "Maschine" ]
                     ]]
-                 ,div [class"select", style "margin-left" "10px"
+                 ,div [class"select is-info is-rounded is-small", style "margin-left" "10px"
                  ]
-                    [ select [ onInput UpdateBelastungFilter
-                        , style "background-color" "transparent"
-                        , style "box-shadow" "none"
-                        , style "border" "none"
-                        , style "outline" "none"
-                        , style "appearance" "none"
-                        , style "-moz-appearance" "none"
-                        , style "-webkit-appearance" "none"
-                        , style "font-weight" "bold"
-                        , style "color" "white"
+                    [ select [ onInput UpdateHauptmuskelgruppeFilter
                         ]
                     [ option [ value ""] [ text "Alle Muskelgruppen" ]
                     , option [ value "Beine" ] [ text "Beine" ]
@@ -153,20 +136,22 @@ trainingModalView maybeTraining =
             text ""
 
         Just training ->
-            div [ class "modal is-active" ]
+            div [ class "modal is-active"]
                 [ div [ class "modal-background" ,onClick (OpenTrainingModal Nothing)]
                     []
                 , div 
                             [ class "modal-card"   
                             , style "border" "none"
                             , style "margin" "15px auto"
-                            , style "max-width" "600px"
+                            , style "max-width" "380px"
                             , style "border-radius" "6px"
                             , style "box-shadow" "0 3px 7px rgba(0, 0, 0, 0.3)"
+                            , Html.Attributes.classList [ ( "animate__animated animate__zoomIn", True )  ] 
                             ]
                             [ div [ class "modal-card-head custom-modal-header is-flex is-justify-content-space-between" ]
                                 [ p [] [ span [ class "title is-4 has-text-black" ] [ text training.name ] ]
-                                , a [ class "button is-danger" ,href "https://www.youtube.com/watch?v=50bRdFkkm4I" ] [ text "Youtube Link"] ] 
+                            --    , a [ class "button is-danger" ,href "https://www.youtube.com/watch?v=50bRdFkkm4I" ] [ text "Youtube Link"] 
+                                 ] 
 
                             , div [ class "modal-card-body custom-modal-body" ]
                                 [ p [ style "margin-bottom" "20px" ]
