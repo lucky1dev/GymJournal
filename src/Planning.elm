@@ -320,7 +320,7 @@ buttonBar model =
 
     in 
     div [ Html.Attributes.class "level-item" ]
-        [ button [ Html.Attributes.class "button is-info", Html.Attributes.style "margin" "10px", onClick OpenInput ]
+        [ button [ Html.Attributes.class "button is-info is-responsive", Html.Attributes.style "margin" "10px", onClick OpenInput ]
             [ Html.text "Trainingsplan erstellen" ]  
             
         , case model.trainings of
@@ -354,7 +354,7 @@ createDropDownMenu model =
     div [ Html.Attributes.class "level-item" ]
         [ div [ Html.Attributes.class ("dropdown " ++ isActive), Html.Attributes.style "margin" "10px"]
             [ div [ Html.Attributes.class "dropdown-trigger" ]
-                [ button [ Html.Attributes.class "button is-info "
+                [ button [ Html.Attributes.class "button is-info is-responsive "
                          , Html.Attributes.style "width" "210px"
                          , Html.Attributes.attribute "aria-haspopup" "true"
                          , Html.Attributes.attribute "aria-controls" "dropdown-menu"
@@ -366,7 +366,7 @@ createDropDownMenu model =
                     ]
                 ]
             , div [ Html.Attributes.class "dropdown-menu", Html.Attributes.id "dropdown-menu3", Html.Attributes.attribute "role" "menu" ]
-                [ div [ Html.Attributes.class "dropdown-content" ] (List.concatMap (\plan -> [button [Html.Attributes.class "button is-white dropdown-item", onClick (SelectWorkoutPlan plan.id)] [Html.text (plan.title ++ " : " ++ plan.weekday)]]) model.trainings) ]
+                [ div [ Html.Attributes.class "dropdown-content" ] (List.concatMap (\plan -> [button [Html.Attributes.class "button is-white dropdown-item is-responsive", onClick (SelectWorkoutPlan plan.id)] [Html.text (plan.title ++ " : " ++ plan.weekday)]]) model.trainings) ]
             ]
         ]
 planView : Model -> Html Msg
@@ -382,14 +382,14 @@ planView model =
         plan :: _ ->
             div [Html.Attributes.class "rows", Html.Attributes.style  "align-items" "center"] [
             div [ Html.Attributes.class "table-container level-item" ]
-                [ table [ Html.Attributes.class "table",  Html.Attributes.style "background-color" "transparent" ]
+                [ table [ Html.Attributes.class "table is-responsive",  Html.Attributes.style "background-color" "transparent" ]
                     [ thead []
                         [ tr []
-                            [ th [Html.Attributes.class  "title is-5 has-text-white"] [Html.text "Trainingsübung" ]
-                            , th [Html.Attributes.class  "title is-5 has-text-white"] [ Html.text "Sätze" ]
-                            , th [Html.Attributes.class  "title is-5 has-text-white"] [ Html.text "Wdh" ] 
-                            , th [Html.Attributes.class  "title is-5 has-text-white"] [ Html.text "Gewicht" ] 
-                            , th [Html.Attributes.class  "title is-5 has-text-white"] [ Html.text "Fortschritt"]
+                            [ th [Html.Attributes.class  "title is-6 has-text-white"] [Html.text "Trainingsübung" ]
+                            , th [Html.Attributes.class  "title is-6 has-text-white"] [ Html.text "Sätze" ]
+                            , th [Html.Attributes.class  "title is-6 has-text-white"] [ Html.text "Wdh" ] 
+                            , th [Html.Attributes.class  "title is-6 has-text-white"] [ Html.text "Gewicht" ] 
+                            , th [Html.Attributes.class  "title is-6 has-text-white"] [ Html.text "Fortschritt"]
                             ]
                         ]
                     , tbody []
@@ -399,21 +399,16 @@ planView model =
                         in
                             tr [Html.Attributes.style "text-align" "center"]
                             [
-                              td [Html.Attributes.class  "title is-5 has-text-white"] [ Html.text exercise.name]
-                            , td [Html.Attributes.class  "title is-5 has-text-white"] [ Html.text exercise.sets ]
-                            , td [Html.Attributes.class  "title is-5 has-text-white"] [ Html.text exercise.reps ]
+                              td [Html.Attributes.class  "title is-6 has-text-white"] [ Html.text exercise.name]
+                            , td [Html.Attributes.class  "title is-6 has-text-white"] [ Html.text exercise.sets ]
+                            , td [Html.Attributes.class  "title is-6 has-text-white"] [ Html.text exercise.reps ]
                             , 
                                 case exercise.belastung of
                                     "Körpergewicht" ->
                                         td
-                                            [ Html.Attributes.style "color" "#6a5acd" ]
-                                            [ Html.img
-                                                [ Html.Attributes.src "./push-up-svgrepo-com.svg"
-                                                , Html.Attributes.style "margin" "-10px"
-                                                , Html.Attributes.style "width" "30px"
+                                                [ Html.Attributes.class "title is-6 has-text-white weight-now"
                                                 ]
-                                                []
-                                            ]
+                                                [ Html.text ("Body") ]
                                     _ ->
                                         let
                                             exerciseIndex =
@@ -425,7 +420,7 @@ planView model =
                                         in
                                         if exercise.weight_now > 0 then
                                             td
-                                                [ Html.Attributes.class "title is-5 has-text-white weight-now"
+                                                [ Html.Attributes.class "title is-6 has-text-white weight-now"
                                                 , onClick <| OpenModal <| OpenChangeLoadExercise plan exercise exerciseIndex
                                                 ]
                                                 [ Html.text (String.fromFloat exercise.weight_now ++ " kg") ]
@@ -459,7 +454,7 @@ planView model =
                             ]) plan.exercises)
                     ]
                 ]
-             , div [Html.Attributes.class "level-item"] [button [Html.Attributes.class "button is-danger", onClick <| OpenModal <| OpenDeletePlan plan.id][Html.text "Trainingsplan löschen"]]] -- modal -bist du sicher? ja nein openModalDeletePlan plan.id button ja -> DeleteworkoutPlan plan.id ; button nein -> OpenModal = false
+             , div [Html.Attributes.class "level-item"] [button [Html.Attributes.class "button is-danger is-responsive", onClick <| OpenModal <| OpenDeletePlan plan.id][Html.text "Trainingsplan löschen"]]]
 
 inputWorkoutPlanView : Model -> Html Msg
 inputWorkoutPlanView model =
@@ -474,8 +469,8 @@ inputWorkoutPlanView model =
                 , input [ Html.Attributes.class "input", placeholder "Wochentag", onInput (\weekday -> UpdateInput { workoutPlan | weekday = weekday }) , Html.Attributes.style "margin-left" "5px"] []]
                 ,div [] (List.indexedMap (exerciseInput model workoutPlan) workoutPlan.exercises)
                 ,div [Html.Attributes.class "level-item", Html.Attributes.style "margin-top" "10px"] [
-                 button [ Html.Attributes.class "button is-info", onClick (AddExercise workoutPlan), Html.Attributes.style "margin-right" "10px" ] [ Html.text "Übung hinzufügen" ]
-                , button [ Html.Attributes.class "button is-success", onClick (SaveInput workoutPlan), Html.Attributes.style "margin-left" "10px" ] [ Html.text "Trainingsplan sichern" ]]
+                 button [ Html.Attributes.class "button is-info is-responsive", onClick (AddExercise workoutPlan), Html.Attributes.style "margin-right" "10px" ] [ Html.text "Übung hinzufügen" ]
+                , button [ Html.Attributes.class "button is-success is-responsive", onClick (SaveInput workoutPlan), Html.Attributes.style "margin-left" "10px" ] [ Html.text "Trainingsplan sichern" ]]
                 ]
 
 exerciseInput : Model -> WorkoutPlan -> Int -> Exercise -> Html Msg
@@ -498,7 +493,7 @@ exerciseInput model workoutPlan index exercise =
         [ div [Html.Attributes.class "select is-info"] [select [Html.Attributes.class "is-focused", onInput (\name -> updateExercise name exercise.sets exercise.reps) ,Html.Attributes.style "margin-right" "5px"] (trainingOptions model.exercises.trainings)]
         , input [ Html.Attributes.class "input",placeholder "Sets", onInput (\sets -> updateExercise exercise.name sets exercise.reps),Html.Attributes.style "width" "20%" ,Html.Attributes.style "margin-right" "5px" ] []
         , input [ Html.Attributes.class "input",placeholder "Reps", onInput (\reps -> updateExercise exercise.name exercise.sets reps),Html.Attributes.style "width" "20%",Html.Attributes.style "margin-right" "5px" ] []
-        , button [Html.Attributes.class "button is-danger", onClick (RemoveExercise workoutPlan index) ] [ Html.text " Entfernen" ]
+        , button [Html.Attributes.class "button is-danger is-responsive", onClick (RemoveExercise workoutPlan index) ] [ Html.text " Entfernen" ]
         ]
 
 trainingOptions : List Training -> List (Html Msg)
@@ -555,10 +550,6 @@ progressBar exercise =
         
         ]
 
-
-
-
-
 modalView : Model -> Html Msg
 modalView model =
     case model.modal of
@@ -590,12 +581,11 @@ modalView model =
                                             [ p [ Html.Attributes.style "margin-bottom" "20px" ]
                                                 [ span [ Html.Attributes.class "title is-5 has-text-black" ] [ Html.text "Diesen Trainingsplan entfernen" ]
                                                 ]
-                                            , button [ Html.Attributes.class "button is-danger", Html.Attributes.style "margin" "10px", Html.Attributes.style "text-align" "center", onClick (DeleteWorkoutPlan int) ] [ Html.text "Ja" ]
-                                            , button [ Html.Attributes.class "button is-success", Html.Attributes.style "margin" "10px", Html.Attributes.style "text-align" "center", onClick CloseModal ] [ Html.text "Nein" ]
+                                            , button [ Html.Attributes.class "button is-danger ", Html.Attributes.style "margin" "10px", Html.Attributes.style "text-align" "center", onClick (DeleteWorkoutPlan int) ] [ Html.text "Ja" ]
+                                            , button [ Html.Attributes.class "button is-success ", Html.Attributes.style "margin" "10px", Html.Attributes.style "text-align" "center", onClick CloseModal ] [ Html.text "Nein" ]
                                             ]
 
                                             ]]
-
 
                     ChangeLoad workoutplan exercise ->
                          div [ Html.Attributes.class "modal is-active"]
@@ -623,55 +613,3 @@ modalView model =
 
 
                     ]
-
-
-{- Zentrieren der Buttons im Modal:
-.custom-modal-body {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: row; /* Buttons nebeneinander */
-    gap: 10px; /* Abstand zwischen den Buttons */
-}
-
-
-
--}
-
-
-{-
-
-        changeLoad ->
-            div [ class "modal is-active"]
-                [ div [ class "modal-background" ,onClick (OpenTrainingModal Nothing)]
-                    []
-                , div 
-                            [ class "modal-card"   
-                            , style "border" "none"
-                            , style "margin" "15px auto"
-                            , style "max-width" "600px"
-                            , style "border-radius" "6px"
-                            , style "box-shadow" "0 3px 7px rgba(0, 0, 0, 0.3)"
-                            , Html.Attributes.classList [ ( "animate__animated animate__zoomIn", True )  ] 
-                            ]
-                            [ div [ class "modal-card-head custom-modal-header is-flex is-justify-content-space-between" ]
-                                [ p [] [ span [ class "title is-4 has-text-black" ] [ text training.name ] ]
-                                , a [ class "button is-danger" ,href "https://www.youtube.com/watch?v=50bRdFkkm4I" ] [ text "Youtube Link"] ] 
-
-                            , div [ class "modal-card-body custom-modal-body" ]
-                                [ p [ style "margin-bottom" "20px" ]
-                                    [ span [ class "title is-5 has-text-black" ] [ text "Hauptmuskelgruppe:     " ]
-                                    , span [ class "title is-5 has-text-black" ] [ text training.hauptmuskelgruppe ]
-                                    ]
-                                , p [ style "margin-bottom" "20px" ]
-                                    [ span [ class "title is-5 has-text-black" ] [ text "Übungsart:     " ]
-                                    , span [ class "title is-5 has-text-black" ] [ text training.belastung ]
-                                    ]
-                                , p [ style "margin-bottom" "20px" ]
-                                    [ span [ class "title is-6 has-text-black" ] [ text "Ausführung:     " ]
-                                    , span [ class "subtitle is-6 has-black" ] [ text training.erklaerung ]
-                                    ]
-                                ]
-                                ]]
-
--}

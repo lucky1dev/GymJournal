@@ -216,8 +216,14 @@ left: -750px;
   animation-duration: 2s;
 }
 
-/* In einer externen CSS-Datei */
 .weight-now:hover {
   animation: heartBeat; 
   animation-duration: 2s;
+}
+
+
+@media screen and (max-width: 768px) {
+  .title.is-6{
+      font-size: 0.5rem;
+  }
 }

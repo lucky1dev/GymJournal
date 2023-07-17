@@ -116,7 +116,7 @@ view model =
 
 viewBody : Model -> Html Msg
 viewBody model =
-                  div [style "position" "absolute" ,style "z-index" "5",style "min-height" "100%", style "min-width" "100%" ] [ navBar model,
+                  div [style "position" "absolute" , style "min-height" "100%", style "min-width" "100%"  ] [ div [style "margin-bottom" "40px"] [navBar model],
                         case model.url.fragment of 
                                 Just "exercises" -> div [] [Html.map ExercisesMsg (Exercises.exercisesView model.exercises)]
                                 Just "trainings" -> div [] [Html.map PlanningMsg (Planning.planningView model.planning)]
@@ -130,7 +130,7 @@ startView model =
 
           case model.firebase.userData of
                 Maybe.Nothing ->
-                        video [ attribute "autoplay" "true", attribute "muted" "true", attribute "loop" "true", id "myVideo", style "opacity" "0.9" ]
+                        video [ attribute "autoplay" "true", attribute "muted" "true", attribute "loop" "true", attribute "playsinline" "true", id "myVideo", style "opacity" "0.9" ]
                                 [ source [ src "./sport2.mp4", type_ "video/mp4" ] []
                                 ]
                 Just data -> 
@@ -154,8 +154,7 @@ navBar model =
             text ""
 
         Just data -> 
-
-            div [ style "display" "flex", style "flex-direction" "row", style "justify-content" "center", style "align-items" "center",  style "position" "relative"
+            div [ style "display" "flex", style "flex-direction" "row", style "justify-content" "center", style "align-items" "center",  style "position" "absolute"
                     , style "z-index" "2"] 
             [ 
                 
