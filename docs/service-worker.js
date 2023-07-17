@@ -14,7 +14,7 @@
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js");
 
 importScripts(
-  "/GymJournal/precache-manifest.8ad5b461d207e883d72ed5db19f0f0e8.js"
+  "/GymJournal/precache-manifest.d53def5212b1e526bb0bd33c6caebaf1.js"
 );
 
 workbox.core.skipWaiting();

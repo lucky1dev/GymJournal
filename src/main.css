@@ -205,7 +205,7 @@ left: -750px;
 
 @media screen and (max-width: 768px) {
   .title.is-6{
-      font-size: 0.57rem;
+      font-size: 0.54rem;
   }
 
   .input {

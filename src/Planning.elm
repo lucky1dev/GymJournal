@@ -604,7 +604,7 @@ modalView model =
                                             [ p [] [ span [ Html.Attributes.class "title is-4 has-text-black" ] [ Html.text "Gewicht aktualisieren" ] ] ] 
 
                                         , div [ Html.Attributes.class "modal-card-body custom-modal-body" ]
-                                            [ input [ Html.Attributes.class "input", placeholder "Arbeitsgewicht in kg", onInput (UpdateNewWeightString) , Html.Attributes.style "margin-bottom" "10px" ] []
+                                            [ p [][input [ Html.Attributes.class "input", placeholder "Gewicht in kg", onInput (UpdateNewWeightString) , Html.Attributes.style "margin-bottom" "10px",Html.Attributes.style "width" "230px",  Html.Attributes.style "margin-left" "10px"  ] []]
                                             , button [ Html.Attributes.class "button is-success", Html.Attributes.style "margin" "10px", Html.Attributes.style "text-align" "center", onClick (UpdateExerciseWeight) ] [ Html.text "Speichern" ]
                                             , button [ Html.Attributes.class "button is-danger", Html.Attributes.style "margin" "10px", Html.Attributes.style "text-align" "center", onClick CloseModal ] [ Html.text "Abbrechen" ]
                                             ]
