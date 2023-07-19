@@ -23,5 +23,5 @@ https://lucky1dev.github.io/GymJournal/
 
 
 # Quellen
-(Video lizenzfrei von Pexels)
-(Hintergrundanimation von Codepen.io Beispiel inspiriert)
+- (Video lizenzfrei von Pexels)
+- (Hintergrundanimation von Codepen.io Beispiel inspiriert)
